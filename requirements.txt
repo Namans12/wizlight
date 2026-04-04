@@ -1,0 +1,26 @@
+# Core dependencies
+pywizlight>=0.5.14    # WiZ bulb control over UDP
+click>=8.0            # CLI framework
+
+# Screen sync
+mss>=9.0              # Fast screen capture
+Pillow>=10.0          # Image processing
+dxcam>=0.0.5          # GPU screen capture (Windows, optional)
+
+# Clap detection
+sounddevice>=0.4      # Audio capture
+numpy>=1.24           # Audio signal processing
+
+# GUI
+customtkinter>=5.0    # Modern UI widgets
+pystray>=0.19         # System tray integration
+
+# WebSocket server (for Chrome extension / Android app)
+websockets>=12.0      # Async WebSocket server
+
+# Alexa integration (optional)
+fauxmo>=0.6           # Belkin WeMo emulation for Alexa
+
+# Development
+pytest>=7.0
+pytest-asyncio>=0.21

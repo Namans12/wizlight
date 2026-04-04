@@ -1,0 +1,40 @@
+name: wizlight_android
+description: WizLight companion app for Android - sync screen colors with WiZ bulbs
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI
+  cupertino_icons: ^1.0.6
+  flutter_colorpicker: ^1.0.3
+  
+  # WebSocket
+  web_socket_channel: ^2.4.0
+  
+  # State management
+  provider: ^6.1.1
+  
+  # Storage
+  shared_preferences: ^2.2.2
+  
+  # Permissions
+  permission_handler: ^11.1.0
+  
+  # Screen capture (native)
+  flutter_foreground_task: ^6.1.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
