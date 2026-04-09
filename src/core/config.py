@@ -29,7 +29,7 @@ class BulbConfig:
     mac: Optional[str] = None
 
 
-COLOR_ALGORITHMS = ("weighted", "kmeans", "histogram")
+COLOR_ALGORITHMS = ("auto", "weighted", "kmeans", "histogram")
 
 
 @dataclass
@@ -38,28 +38,28 @@ class ScreenSyncConfig:
 
     enabled: bool = False
     mode: str = "single"
-    fps: int = 12
+    fps: int = 24
     monitor: int = 1
-    smoothing: float = 0.25
-    sample_size: int = 48
+    smoothing: float = 0.2
+    sample_size: int = 56
     ignore_letterbox: bool = True
-    edge_weight: float = 1.35
-    color_boost: float = 1.15
-    min_brightness: int = 28
-    min_color_delta: int = 12
+    edge_weight: float = 1.5
+    color_boost: float = 1.18
+    min_brightness: int = 20
+    min_color_delta: int = 8
     bulb_layout: dict[str, str] = field(default_factory=dict)
     
     # V2 optimization settings
     use_gpu: bool = True
     adaptive_fps: bool = True
-    min_fps: int = 8
-    max_fps: int = 30
-    color_algorithm: str = "weighted"
+    min_fps: int = 10
+    max_fps: int = 24
+    color_algorithm: str = "auto"
     predictive_smoothing: bool = True
 
     def __post_init__(self) -> None:
         self.mode = self.mode if self.mode in SCREEN_SYNC_MODES else "single"
-        self.fps = max(4, min(30, int(self.fps)))
+        self.fps = max(4, min(60, int(self.fps)))
         self.monitor = int(self.monitor)
         self.smoothing = max(0.05, min(1.0, float(self.smoothing)))
         self.sample_size = max(16, min(96, int(self.sample_size)))
@@ -75,7 +75,10 @@ class ScreenSyncConfig:
         # V2 validation
         self.min_fps = max(4, min(30, int(self.min_fps)))
         self.max_fps = max(self.min_fps, min(60, int(self.max_fps)))
-        self.color_algorithm = self.color_algorithm if self.color_algorithm in COLOR_ALGORITHMS else "weighted"
+        self.color_algorithm = self.color_algorithm if self.color_algorithm in COLOR_ALGORITHMS else "auto"
+        self.use_gpu = bool(self.use_gpu)
+        self.adaptive_fps = bool(self.adaptive_fps)
+        self.predictive_smoothing = bool(self.predictive_smoothing)
 
 
 @dataclass

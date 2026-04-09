@@ -11,15 +11,17 @@ from PIL import Image
 
 
 SCREEN_REGIONS: dict[str, tuple[float, float, float, float]] = {
-    "left": (0.0, 0.0, 0.34, 1.0),
-    "center": (0.33, 0.0, 0.34, 1.0),
-    "right": (0.66, 0.0, 0.34, 1.0),
-    "top-left": (0.0, 0.0, 0.5, 0.5),
-    "top": (0.25, 0.0, 0.5, 0.5),
-    "top-right": (0.5, 0.0, 0.5, 0.5),
-    "bottom-left": (0.0, 0.5, 0.5, 0.5),
-    "bottom": (0.25, 0.5, 0.5, 0.5),
-    "bottom-right": (0.5, 0.5, 0.5, 0.5),
+    # These regions intentionally bias toward screen edges rather than full thirds.
+    # Ambient lighting feels more accurate when it reacts to border colors, not UI-heavy centers.
+    "left": (0.0, 0.08, 0.22, 0.84),
+    "center": (0.22, 0.12, 0.56, 0.76),
+    "right": (0.78, 0.08, 0.22, 0.84),
+    "top-left": (0.0, 0.0, 0.34, 0.28),
+    "top": (0.22, 0.0, 0.56, 0.24),
+    "top-right": (0.66, 0.0, 0.34, 0.28),
+    "bottom-left": (0.0, 0.72, 0.34, 0.28),
+    "bottom": (0.22, 0.76, 0.56, 0.24),
+    "bottom-right": (0.66, 0.72, 0.34, 0.28),
 }
 
 
@@ -293,6 +295,22 @@ def enhance_color(
     return tuple(int(channel) for channel in np.clip(values, 0, 255))
 
 
+def adaptive_color_boost(
+    color: tuple[int, int, int],
+    configured_boost: float,
+) -> float:
+    """Convert an aggressive configured boost into a scene-aware effective boost."""
+
+    peak = max(color)
+    if peak <= 0:
+        return 1.0
+
+    saturation = (peak - min(color)) / peak
+    extra = max(0.0, float(configured_boost) - 1.0)
+    strength = min(0.45, saturation * 0.7)
+    return 1.0 + extra * strength
+
+
 def average_colors(colors: Sequence[tuple[int, int, int]]) -> tuple[int, int, int]:
     """Compute an RGB average across multiple colors."""
 
@@ -302,10 +320,26 @@ def average_colors(colors: Sequence[tuple[int, int, int]]) -> tuple[int, int, in
     return tuple(int(channel) for channel in values.mean(axis=0))
 
 
-def color_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
-    """Compute a cheap color delta for update throttling."""
+def perceptual_color_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
+    """Approximate visual distance, weighting green changes more heavily."""
 
-    return sum(abs(a[i] - b[i]) for i in range(3))
+    r_mean = (a[0] + b[0]) / 2.0
+    dr = float(a[0] - b[0])
+    dg = float(a[1] - b[1])
+    db = float(a[2] - b[2])
+    return float(
+        np.sqrt(
+            (2.0 + r_mean / 256.0) * dr * dr
+            + 4.0 * dg * dg
+            + (2.0 + (255.0 - r_mean) / 256.0) * db * db
+        )
+    )
+
+
+def color_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
+    """Compute a perceptual color delta for update throttling."""
+
+    return perceptual_color_distance(a, b)
 
 
 def build_bulb_color_map(
@@ -381,7 +415,7 @@ class ScreenSync:
             return {
                 "all": enhance_color(
                     color,
-                    color_boost=self.config.color_boost,
+                    color_boost=adaptive_color_boost(color, self.config.color_boost),
                     min_brightness=self.config.min_brightness,
                 )
             }
@@ -392,7 +426,7 @@ class ScreenSync:
             color = extract_fn(region_image, self.config.sample_size, self.config.edge_weight)
             colors[region] = enhance_color(
                 color,
-                color_boost=self.config.color_boost,
+                color_boost=adaptive_color_boost(color, self.config.color_boost),
                 min_brightness=self.config.min_brightness,
             )
         return colors

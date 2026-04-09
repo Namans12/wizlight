@@ -41,6 +41,12 @@ def test_screen_sync_settings_persist_to_disk(tmp_path):
     config.screen_sync.smoothing = 0.4
     config.screen_sync.color_boost = 1.3
     config.screen_sync.min_brightness = 32
+    config.screen_sync.use_gpu = False
+    config.screen_sync.adaptive_fps = True
+    config.screen_sync.min_fps = 10
+    config.screen_sync.max_fps = 22
+    config.screen_sync.color_algorithm = "histogram"
+    config.screen_sync.predictive_smoothing = False
     config.screen_sync.bulb_layout = {
         "192.168.1.10": "left",
         "192.168.1.11": "right",
@@ -55,6 +61,12 @@ def test_screen_sync_settings_persist_to_disk(tmp_path):
     assert reloaded.screen_sync.smoothing == 0.4
     assert reloaded.screen_sync.color_boost == 1.3
     assert reloaded.screen_sync.min_brightness == 32
+    assert reloaded.screen_sync.use_gpu is False
+    assert reloaded.screen_sync.adaptive_fps is True
+    assert reloaded.screen_sync.min_fps == 10
+    assert reloaded.screen_sync.max_fps == 22
+    assert reloaded.screen_sync.color_algorithm == "histogram"
+    assert reloaded.screen_sync.predictive_smoothing is False
     assert reloaded.screen_sync.bulb_layout == {
         "192.168.1.10": "left",
         "192.168.1.11": "right",
@@ -82,5 +94,6 @@ def test_load_old_config_applies_new_screen_sync_defaults(tmp_path):
 
     assert config.screen_sync.mode == "single"
     assert config.screen_sync.ignore_letterbox is True
-    assert config.screen_sync.color_boost == 1.15
+    assert config.screen_sync.color_boost == 1.18
+    assert config.screen_sync.color_algorithm == "auto"
     assert config.screen_sync.bulb_layout == {}

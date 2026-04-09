@@ -7,17 +7,16 @@ import customtkinter as ctk
 
 from ..core.async_runtime import BackgroundAsyncLoop
 from ..core.bulb_controller import BulbController, PRESETS, apply_preset
-from ..core.config import Config, SCREEN_SYNC_MODES, SCREEN_SYNC_REGIONS
+from ..core.config import COLOR_ALGORITHMS, Config, SCREEN_SYNC_MODES, SCREEN_SYNC_REGIONS
 from ..features.clap_detector import ClapConfig, ClapDetector
 from ..features.screen_sync import (
-    CaptureConfig,
-    ScreenSync,
     average_colors,
     build_bulb_color_map,
     effective_screen_sync_mode,
     list_monitors,
     resolve_active_regions,
 )
+from ..features.screen_sync_v2 import OptimizedScreenSync, build_optimized_capture_config
 
 # Import new components
 from .components.animations import AnimationMixin, animate_value, ease_out_cubic
@@ -74,13 +73,14 @@ class WizLightModernGUI(AnimationMixin):
         AnimationMixin.__init__(self)
         self.config = Config.load()
         self.controller = BulbController()
-        self.screen_sync: Optional[ScreenSync] = None
+        self.screen_sync: Optional[OptimizedScreenSync] = None
         self.clap_detector: Optional[ClapDetector] = None
         self._async_runner = BackgroundAsyncLoop()
         self._pending_tasks: list[Future] = []
         self._brightness_debounce_id = None
         self._temp_debounce_id = None
         self._screen_sync_reconfigure_id = None
+        self._screen_sync_debug_id = None
         self._screen_layout_vars: dict[str, ctk.StringVar] = {}
         self._monitor_options = self._load_monitor_options()
         self._monitor_label_to_index = {
@@ -274,17 +274,34 @@ class WizLightModernGUI(AnimationMixin):
         )
         self.monitor_menu.set(selected_monitor)
 
-        self.fps_value = ctk.IntVar(value=self.config.screen_sync.fps)
+        self.fps_value = ctk.IntVar(value=self.config.screen_sync.max_fps)
+        self.min_fps_value = ctk.IntVar(value=self.config.screen_sync.min_fps)
         self.smoothing_value = ctk.DoubleVar(value=self.config.screen_sync.smoothing)
         self.boost_value = ctk.DoubleVar(value=self.config.screen_sync.color_boost)
         self.min_brightness_value = ctk.IntVar(value=self.config.screen_sync.min_brightness)
         self.ignore_letterbox_var = ctk.BooleanVar(value=self.config.screen_sync.ignore_letterbox)
+        self.algorithm_value = ctk.StringVar(value=self.config.screen_sync.color_algorithm.title())
+        self.use_gpu_var = ctk.BooleanVar(value=self.config.screen_sync.use_gpu)
+        self.adaptive_fps_var = ctk.BooleanVar(value=self.config.screen_sync.adaptive_fps)
+        self.predictive_smoothing_var = ctk.BooleanVar(value=self.config.screen_sync.predictive_smoothing)
 
-        self.fps_label = ctk.CTkLabel(settings, text=f"FPS: {self.fps_value.get()}")
+        self.fps_label = ctk.CTkLabel(settings, text=f"Max FPS: {self.fps_value.get()}")
         self.fps_label.pack(anchor="w", padx=12)
-        self.fps_slider = ctk.CTkSlider(settings, from_=4, to=30, number_of_steps=26, command=self._on_fps_change)
+        self.fps_slider = ctk.CTkSlider(settings, from_=4, to=60, number_of_steps=56, command=self._on_fps_change)
         self.fps_slider.set(self.fps_value.get())
         self.fps_slider.pack(fill="x", padx=12, pady=(0, 8))
+
+        self.min_fps_label = ctk.CTkLabel(settings, text=f"Min FPS: {self.min_fps_value.get()}")
+        self.min_fps_label.pack(anchor="w", padx=12)
+        self.min_fps_slider = ctk.CTkSlider(
+            settings,
+            from_=4,
+            to=30,
+            number_of_steps=26,
+            command=self._on_min_fps_change,
+        )
+        self.min_fps_slider.set(self.min_fps_value.get())
+        self.min_fps_slider.pack(fill="x", padx=12, pady=(0, 8))
 
         self.smoothing_label = ctk.CTkLabel(settings, text=f"Smoothing: {self.smoothing_value.get():.2f}")
         self.smoothing_label.pack(anchor="w", padx=12)
@@ -313,6 +330,36 @@ class WizLightModernGUI(AnimationMixin):
         self.min_brightness_slider.set(self.min_brightness_value.get())
         self.min_brightness_slider.pack(fill="x", padx=12, pady=(0, 8))
 
+        self.algorithm_menu = ctk.CTkOptionMenu(
+            settings,
+            values=[algorithm.title() for algorithm in COLOR_ALGORITHMS],
+            variable=self.algorithm_value,
+            command=lambda _: self._save_screen_sync_settings(),
+        )
+        self.algorithm_menu.pack(fill="x", padx=12, pady=(0, 8))
+
+        advanced_flags = ctk.CTkFrame(settings, fg_color="transparent")
+        advanced_flags.pack(fill="x", padx=12, pady=(0, 8))
+        ctk.CTkCheckBox(
+            advanced_flags,
+            text="Adaptive FPS",
+            variable=self.adaptive_fps_var,
+            command=self._save_screen_sync_settings,
+        ).pack(side="left", padx=(0, 8))
+        ctk.CTkCheckBox(
+            advanced_flags,
+            text="Predictive",
+            variable=self.predictive_smoothing_var,
+            command=self._save_screen_sync_settings,
+        ).pack(side="left")
+
+        ctk.CTkCheckBox(
+            settings,
+            text="Use GPU capture when available",
+            variable=self.use_gpu_var,
+            command=self._save_screen_sync_settings,
+        ).pack(anchor="w", padx=12, pady=(0, 8))
+
         ctk.CTkCheckBox(
             settings,
             text="Ignore black bars / letterboxing",
@@ -328,6 +375,48 @@ class WizLightModernGUI(AnimationMixin):
         self.layout_frame = ctk.CTkFrame(settings, fg_color="transparent")
         self.layout_frame.pack(fill="x", padx=12, pady=(6, 12))
         self._refresh_screen_sync_layout_controls()
+        self._build_screen_sync_debug(main)
+
+    def _build_screen_sync_debug(self, parent):
+        card = ctk.CTkFrame(parent)
+        card.pack(fill="x", pady=(0, 12))
+        ctk.CTkLabel(card, text="Sync Debug", font=("Segoe UI", 16, "bold")).pack(
+            anchor="w", padx=12, pady=(12, 8)
+        )
+
+        preview_row = ctk.CTkFrame(card, fg_color="transparent")
+        preview_row.pack(fill="x", padx=12, pady=(0, 6))
+        ctk.CTkLabel(preview_row, text="Output", width=80, anchor="w").pack(side="left")
+        self.screen_sync_debug_preview = ctk.CTkFrame(
+            preview_row,
+            width=22,
+            height=22,
+            corner_radius=6,
+            fg_color="#000000",
+        )
+        self.screen_sync_debug_preview.pack(side="left", padx=(0, 8))
+        self.screen_sync_debug_preview.pack_propagate(False)
+
+        self.screen_sync_debug_runtime = ctk.StringVar(value="Runtime: idle")
+        self.screen_sync_debug_target = ctk.StringVar(value="Target: -")
+        self.screen_sync_debug_output = ctk.StringVar(value="Output: -")
+        self.screen_sync_debug_perf = ctk.StringVar(value="FPS: -")
+        self.screen_sync_debug_cadence = ctk.StringVar(value="Cadence: -")
+        self.screen_sync_debug_motion = ctk.StringVar(value="Motion: -")
+        self.screen_sync_debug_error = ctk.StringVar(value="")
+
+        for variable in (
+            self.screen_sync_debug_runtime,
+            self.screen_sync_debug_target,
+            self.screen_sync_debug_output,
+            self.screen_sync_debug_perf,
+            self.screen_sync_debug_cadence,
+            self.screen_sync_debug_motion,
+            self.screen_sync_debug_error,
+        ):
+            ctk.CTkLabel(card, textvariable=variable, anchor="w", justify="left").pack(
+                anchor="w", padx=12, pady=(0, 2)
+            )
 
     def _refresh_screen_sync_layout_controls(self):
         for child in self.layout_frame.winfo_children():
@@ -370,10 +459,16 @@ class WizLightModernGUI(AnimationMixin):
         settings.mode = self.mode_menu.get().strip().lower()
         settings.monitor = self._monitor_label_to_index.get(self.monitor_menu.get(), settings.monitor)
         settings.fps = int(self.fps_value.get())
+        settings.max_fps = int(self.fps_value.get())
+        settings.min_fps = int(self.min_fps_value.get())
         settings.smoothing = float(self.smoothing_value.get())
         settings.color_boost = float(self.boost_value.get())
         settings.min_brightness = int(self.min_brightness_value.get())
         settings.ignore_letterbox = bool(self.ignore_letterbox_var.get())
+        settings.color_algorithm = self.algorithm_menu.get().strip().lower()
+        settings.use_gpu = bool(self.use_gpu_var.get())
+        settings.adaptive_fps = bool(self.adaptive_fps_var.get())
+        settings.predictive_smoothing = bool(self.predictive_smoothing_var.get())
         settings.bulb_layout = self._current_screen_layout()
         settings.__post_init__()
         self.config.save()
@@ -393,7 +488,19 @@ class WizLightModernGUI(AnimationMixin):
 
     def _on_fps_change(self, value):
         self.fps_value.set(int(float(value)))
-        self.fps_label.configure(text=f"FPS: {self.fps_value.get()}")
+        self.fps_label.configure(text=f"Max FPS: {self.fps_value.get()}")
+        if self.min_fps_value.get() > self.fps_value.get():
+            self.min_fps_value.set(self.fps_value.get())
+            self.min_fps_slider.set(self.min_fps_value.get())
+            self.min_fps_label.configure(text=f"Min FPS: {self.min_fps_value.get()}")
+        self._save_screen_sync_settings()
+
+    def _on_min_fps_change(self, value):
+        self.min_fps_value.set(int(float(value)))
+        if self.min_fps_value.get() > self.fps_value.get():
+            self.min_fps_value.set(self.fps_value.get())
+            self.min_fps_slider.set(self.min_fps_value.get())
+        self.min_fps_label.configure(text=f"Min FPS: {self.min_fps_value.get()}")
         self._save_screen_sync_settings()
 
     def _on_smoothing_change(self, value):
@@ -416,6 +523,63 @@ class WizLightModernGUI(AnimationMixin):
 
     def _set_status(self, msg: str):
         self.status_label.configure(text=msg)
+
+    def _format_debug_color(self, color: Optional[tuple[int, int, int]]) -> str:
+        if color is None:
+            return "-"
+        return f"RGB({color[0]}, {color[1]}, {color[2]})"
+
+    def _refresh_screen_sync_debug(self):
+        self._screen_sync_debug_id = None
+        if not self.screen_sync or not self.screen_sync.is_running:
+            self.screen_sync_debug_runtime.set("Runtime: idle")
+            self.screen_sync_debug_target.set("Target: -")
+            self.screen_sync_debug_output.set("Output: -")
+            self.screen_sync_debug_perf.set("FPS: -")
+            self.screen_sync_debug_cadence.set("Cadence: -")
+            self.screen_sync_debug_motion.set("Motion: -")
+            self.screen_sync_debug_error.set("")
+            self.screen_sync_debug_preview.configure(fg_color="#000000")
+            return
+
+        snapshot = self.screen_sync.debug_snapshot
+        target_colors = snapshot["target_colors"]
+        current_colors = snapshot["current_colors"]
+        target = target_colors.get("all") or (
+            average_colors(tuple(target_colors.values())) if target_colors else None
+        )
+        output = current_colors.get("all") or (
+            average_colors(tuple(current_colors.values())) if current_colors else None
+        )
+
+        self.screen_sync_debug_runtime.set(
+            f"Runtime: {snapshot['capture_method'].upper()} | {snapshot['mode']}"
+        )
+        self.screen_sync_debug_target.set(f"Target: {self._format_debug_color(target)}")
+        self.screen_sync_debug_output.set(f"Output: {self._format_debug_color(output)}")
+        self.screen_sync_debug_perf.set(
+            f"FPS: {snapshot['current_fps']} | frame {snapshot['average_frame_time_ms']:.1f} ms"
+        )
+        if snapshot["send_rate_hz"] > 0:
+            self.screen_sync_debug_cadence.set(
+                f"Cadence: {snapshot['send_rate_hz']:.1f} Hz | {snapshot['send_interval_ms']:.0f} ms | sends {snapshot['updates_sent']}"
+            )
+        else:
+            self.screen_sync_debug_cadence.set(
+                f"Cadence: warming up | sends {snapshot['updates_sent']}"
+            )
+        self.screen_sync_debug_motion.set(
+            f"Motion: {snapshot['motion_score']:.3f} | smooth {snapshot['smoothing_factor']:.2f} | predict {snapshot['prediction_weight']:.2f}"
+        )
+        self.screen_sync_debug_error.set(
+            f"Error: {snapshot['last_error']}" if snapshot["last_error"] else ""
+        )
+        if output is not None:
+            self.screen_sync_debug_preview.configure(
+                fg_color=f"#{output[0]:02x}{output[1]:02x}{output[2]:02x}"
+            )
+
+        self._screen_sync_debug_id = self.root.after(350, self._refresh_screen_sync_debug)
 
     def _update_bulb_status(self):
         if self.config.bulbs:
@@ -520,12 +684,21 @@ class WizLightModernGUI(AnimationMixin):
         self._temp_debounce_id = self.root.after(100, send)
 
     def _start_screen_sync(self):
-        ips = self._get_bulb_ips()
+        configured_ips = self._get_bulb_ips()
+        try:
+            ips = self._async_runner.run(
+                self.controller.refresh_screen_sync_targets(configured_ips),
+                timeout=6.0,
+            )
+        except Exception as exc:
+            self.screen_sync_switch.deselect()
+            self._set_status(f"Sync preflight failed: {exc}")
+            return
         if not ips:
             self.screen_sync_switch.deselect()
             self.config.screen_sync.enabled = False
             self.config.save()
-            self._set_status("No bulbs configured")
+            self._set_status("No reachable bulbs available for screen sync")
             return
 
         self._save_screen_sync_settings()
@@ -536,7 +709,7 @@ class WizLightModernGUI(AnimationMixin):
         def on_color_change(colors_by_target):
             bulb_colors = build_bulb_color_map(ips, colors_by_target, settings.mode, settings.bulb_layout)
             if bulb_colors:
-                self._run_async(self.controller.set_rgb_map(bulb_colors))
+                self._run_async(self.controller.set_screen_sync_map(bulb_colors))
             preview = average_colors(tuple(colors_by_target.values()))
             self.root.after(
                 0,
@@ -545,35 +718,42 @@ class WizLightModernGUI(AnimationMixin):
                 ),
             )
 
-        self.screen_sync = ScreenSync(
+        self.screen_sync = OptimizedScreenSync(
             on_color_change=on_color_change,
-            config=CaptureConfig(
-                mode=settings.mode,
-                monitor=settings.monitor,
-                fps=settings.fps,
-                sample_size=settings.sample_size,
-                ignore_letterbox=settings.ignore_letterbox,
-                edge_weight=settings.edge_weight,
-                color_boost=settings.color_boost,
-                min_brightness=settings.min_brightness,
-                min_color_delta=settings.min_color_delta,
-                active_regions=active_regions,
-            ),
-            smoothing=settings.smoothing,
+            config=build_optimized_capture_config(settings, active_regions),
         )
         self.screen_sync.start()
+        if self._screen_sync_debug_id:
+            self.root.after_cancel(self._screen_sync_debug_id)
+        self._refresh_screen_sync_debug()
 
+        profile = "cinematic single" if mode == "single" and settings.color_algorithm == "auto" else settings.color_algorithm.upper()
+        mapping = self.controller.summarize_screen_sync_mapping(ips)
+        runtime = f"{self.screen_sync.capture_method.upper()} / {profile}"
+        if mapping:
+            runtime = f"{runtime} / {mapping}"
+        skipped = len(configured_ips) - len(ips)
         if mode == "zones":
-            self._set_status(f"Screen sync ON ({len(active_regions)} zones)")
+            self._set_status(
+                f"Screen sync ON ({len(active_regions)} zones, {runtime}{', skipped ' + str(skipped) + ' stale bulb(s)' if skipped else ''})"
+            )
         elif settings.mode == "zones":
-            self._set_status("Screen sync ON (single fallback until 2+ zones are assigned)")
+            self._set_status(
+                f"Screen sync ON (single fallback until 2+ zones are assigned, {runtime}{', skipped ' + str(skipped) + ' stale bulb(s)' if skipped else ''})"
+            )
         else:
-            self._set_status("Screen sync ON")
+            self._set_status(
+                f"Screen sync ON ({runtime}{', skipped ' + str(skipped) + ' stale bulb(s)' if skipped else ''})"
+            )
 
     def _stop_screen_sync(self, update_status: bool = True):
         if self.screen_sync:
             self.screen_sync.stop()
             self.screen_sync = None
+        if self._screen_sync_debug_id:
+            self.root.after_cancel(self._screen_sync_debug_id)
+            self._screen_sync_debug_id = None
+        self._refresh_screen_sync_debug()
         if update_status:
             self._set_status("Screen sync OFF")
 
@@ -717,6 +897,8 @@ class WizLightModernGUI(AnimationMixin):
             self.root.after_cancel(self._temp_debounce_id)
         if self._screen_sync_reconfigure_id:
             self.root.after_cancel(self._screen_sync_reconfigure_id)
+        if self._screen_sync_debug_id:
+            self.root.after_cancel(self._screen_sync_debug_id)
 
         for future in self._pending_tasks:
             if not future.done():

@@ -315,14 +315,21 @@ def serve(ctx, port, host):
     
     controller = ctx.obj["controller"]
     config = ctx.obj["config"]
-    ips = [b.ip for b in config.bulbs]
+    configured_ips = [b.ip for b in config.bulbs]
+    ips = run_async(ctx, controller.refresh_screen_sync_targets(configured_ips))
     
     if not ips:
-        click.echo("No bulbs configured. Run 'wizlight discover' first.")
+        click.echo("No reachable bulbs available. Run 'wizlight discover' or remove stale entries.")
         return
     
     click.echo(f"Starting WebSocket server on ws://{host}:{port}")
-    click.echo(f"Controlling {len(ips)} bulb(s): {', '.join(ips)}")
+    click.echo(f"Controlling {len(ips)} reachable bulb(s): {', '.join(ips)}")
+    skipped = len(configured_ips) - len(ips)
+    if skipped:
+        click.echo(f"Skipping {skipped} stale or unreachable bulb(s)")
+    mapping = controller.summarize_screen_sync_mapping(ips)
+    if mapping:
+        click.echo(f"Mapping: {mapping}")
     click.echo("Press Ctrl+C to stop")
     click.echo()
     
@@ -339,10 +346,7 @@ def serve(ctx, port, host):
         
         # Apply colors to bulbs
         async def apply_colors():
-            await asyncio.gather(
-                *(controller.set_rgb(ip, *rgb) for ip, rgb in bulb_colors.items()),
-                return_exceptions=True,
-            )
+            await controller.set_screen_sync_map(bulb_colors)
         
         ctx.obj["runner"].run(apply_colors())
     

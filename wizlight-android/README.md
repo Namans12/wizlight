@@ -1,120 +1,98 @@
-# WizLight Android Companion App
+# WizLight Android Tablet Sync
 
-Sync your WiZ smart bulbs with content playing on your Android device.
+Sync up to 2 WiZ bulbs directly from your Android tablet without routing through the PC app.
 
-## Features
+## What Changed
 
-- 📱 Real-time screen color sync using MediaProjection API
-- 🎨 Same color extraction algorithm as desktop
-- ⚡ Configurable FPS (4-30)
-- 🔧 Color boost and brightness settings
-- 🔌 WebSocket connection to WizLight server
+- Direct local WiZ discovery on the tablet over UDP
+- Manual add-by-IP fallback when discovery is blocked
+- On-device screen sync using MediaProjection
+- Smarter single-bulb cinematic extraction for movies and video
+- Left/right zone sync for 2-bulb ambient setups
+- Adaptive FPS, smoothing, letterbox rejection, and runtime status in the UI
 
 ## Requirements
 
 - Android 7.0+ (API 24+)
-- Flutter 3.0+
-- WizLight server running on your PC
+- WiZ bulbs on the same Wi-Fi network as the tablet
+- `Local communication` enabled in the WiZ app
 
-## Setup
-
-### 1. Install Flutter
-
-Follow the [Flutter installation guide](https://docs.flutter.dev/get-started/install).
-
-### 2. Build the app
+## Build
 
 ```bash
 cd wizlight-android
 flutter pub get
-flutter build apk --release
+flutter test
+flutter build apk --debug
 ```
 
-The APK will be at `build/app/outputs/flutter-apk/app-release.apk`.
+Debug APK output:
 
-### 3. Install on your device
+```text
+build/app/outputs/apk/debug/app-debug.apk
+```
+
+## Install
 
 ```bash
-adb install build/app/outputs/flutter-apk/app-release.apk
+adb install build/app/outputs/apk/debug/app-debug.apk
 ```
-
-Or transfer the APK to your device and install manually.
 
 ## Usage
 
-1. **Start the server** on your PC:
-   ```bash
-   wizlight serve
-   ```
+1. Open the app on the tablet.
+2. Tap `Discover` to find WiZ bulbs on the local network.
+3. If discovery misses a bulb, use `Add IP`.
+4. Assign up to 2 bulbs to `Left` and `Right`.
+5. Pick `Single` or `Left + Right` mode.
+6. Tap `Start Tablet Sync` and grant screen capture permission.
 
-2. **Open WizLight Sync** on your Android device
+## Tuning
 
-3. **Enter your PC's IP address** in Settings
-   - Find your PC's IP with `ipconfig` (Windows) or `ip addr` (Linux)
-   - Example: `ws://192.168.1.100:38901`
-
-4. **Tap Connect** to establish connection
-
-5. **Tap Start Sync** to begin screen capture
-   - Grant screen capture permission when prompted
-   - A notification will appear while syncing
-
-6. **Play a video** and watch your lights!
-
-## Settings
-
-| Setting | Description | Range |
-|---------|-------------|-------|
-| Server URL | WebSocket server address | ws://IP:38901 |
-| FPS | Capture frame rate | 4-30 |
-| Color Boost | Saturation enhancement | 1.0-2.0 |
-| Min Brightness | Minimum color brightness | 0-128 |
-| Auto-connect | Connect on app start | On/Off |
+- `Single` mode is best for 1 bulb and is tuned for richer movie ambience.
+- `Left + Right` is for 2-bulb ambient setups.
+- Raise `Max FPS` for faster matching.
+- Raise `Color Boost` for stronger saturation.
+- Keep `Ignore Letterbox Bars` on for movies.
 
 ## Architecture
 
-```
+```text
 lib/
-├── main.dart                    # App entry point
-├── screens/
-│   ├── home_screen.dart         # Main UI
-│   └── settings_screen.dart     # Settings UI
-└── services/
-    ├── sync_service.dart        # WebSocket connection
-    ├── settings_service.dart    # Persistent settings
-    └── screen_capture_service.dart  # Native bridge
+├── models/wiz_bulb.dart
+├── screens/home_screen.dart
+├── screens/settings_screen.dart
+├── services/wiz_bulb_service.dart
+├── services/sync_service.dart
+├── services/settings_service.dart
+└── services/screen_capture_service.dart
 
-android/.../kotlin/com/wizlight/app/
-├── MainActivity.kt              # Flutter activity
-└── ScreenCaptureService.kt      # MediaProjection service
+android/app/src/main/kotlin/com/wizlight/app/
+├── MainActivity.kt
+└── ScreenCaptureService.kt
 ```
-
-## Battery Considerations
-
-Screen capture uses significant battery. Tips:
-
-- Use lower FPS (8-12) for better battery life
-- Stop sync when not watching videos
-- Adaptive FPS automatically reduces rate for static content
 
 ## Troubleshooting
 
-### "Connection error"
-- Ensure PC and phone are on the same WiFi network
-- Check that `wizlight serve` is running
-- Verify the IP address is correct
-- Check firewall allows port 38901
+### No bulbs discovered
 
-### "Screen capture failed"
-- Grant screen capture permission
-- Restart the app if permission was denied
-- Some apps (Netflix, banking) block screen capture
+- Confirm `Local communication` is enabled in the WiZ app.
+- Make sure the tablet is on the same Wi-Fi as the bulbs.
+- Try `Add IP` using the IP shown in the WiZ app.
 
-### Colors don't match well
-- Increase Color Boost for more vivid colors
-- Adjust Min Brightness for dark scenes
-- Ensure room lighting isn't interfering
+### Screen capture starts but lights do not react
 
-## License
+- Recheck that the bulbs were discovered or added locally in the app.
+- Verify the bulbs still respond in the WiZ app on the same Wi-Fi.
+- Some DRM-heavy apps can block capture or return black frames.
 
-MIT License - Same as WizLight main project
+### Build fails on Windows
+
+- If Gradle/Kotlin cache files get stuck, stop Gradle and clear the app `build/` folder:
+
+```powershell
+cd wizlight-android\android
+.\gradlew.bat --stop
+cd ..
+Remove-Item build -Recurse -Force
+```

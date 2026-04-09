@@ -1,0 +1,208 @@
+- generic [ref=e2]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button "Guide" [ref=e9] [cursor=pointer]
+        - generic [ref=e11]:
+          - link "YouTube Home" [ref=e12] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e16]: IN
+        - button "Skip navigation" [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: Skip navigation
+      - generic [ref=e25]:
+        - search [ref=e26]:
+          - generic [ref=e27]:
+            - combobox "Search" [expanded] [ref=e30]
+            - button "Search" [ref=e31] [cursor=pointer]
+        - generic [ref=e34]:
+          - button "Search with your voice" [ref=e36] [cursor=pointer]
+          - tooltip "tooltip"
+      - generic [ref=e43]:
+        - button "Settings" [ref=e48] [cursor=pointer]
+        - link "Sign in" [ref=e52] [cursor=pointer]:
+          - /url: https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fwatch%253Fv%253D8u4UzzJZAUg&hl=en&ec=65620
+          - generic [ref=e55]: Sign in
+  - main [ref=e60]:
+    - generic [ref=e61]:
+      - generic [ref=e63]:
+        - complementary [ref=e70]:
+          - generic "YouTube Video Player" [ref=e73]:
+            - button "Play" [ref=e77] [cursor=pointer]:
+              - img
+            - generic [ref=e78]:
+              - generic [ref=e79] [cursor=pointer]:
+                - slider "Seek slider" [ref=e80]
+                - generic:
+                  - generic:
+                    - generic:
+                      - slider "Click or scroll the panel for the precise seeking."
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - button "Pause (k)" [ref=e91] [cursor=pointer]:
+                    - img
+                  - generic [ref=e92]:
+                    - button "Mute (m)" [ref=e94] [cursor=pointer]:
+                      - img
+                    - slider "Volume"
+                  - button "0 Minutes 0 Seconds of 1 Minutes 46 Seconds" [ref=e98] [cursor=pointer]: 0:00 / 1:46
+                - generic [ref=e99]:
+                  - generic [ref=e100]:
+                    - button "Autoplay is on" [ref=e101] [cursor=pointer]
+                    - button "Subtitles/closed captions unavailable" [ref=e104] [cursor=pointer]:
+                      - generic [ref=e105]:
+                        - img
+                    - button "Settings" [ref=e106] [cursor=pointer]:
+                      - img
+                  - generic [ref=e107]:
+                    - button "Theater mode (t)" [ref=e108] [cursor=pointer]:
+                      - img
+                    - button "Full screen (f)" [ref=e109] [cursor=pointer]:
+                      - img
+        - generic [ref=e110]:
+          - generic [ref=e112]:
+            - heading "Ambilight Color Test" [level=1] [ref=e114]
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - generic [ref=e117]:
+                  - link [ref=e118] [cursor=pointer]:
+                    - /url: /@dave.madison
+                  - generic [ref=e120]:
+                    - generic "Dave Madison" [ref=e124]:
+                      - link "Dave Madison" [ref=e125] [cursor=pointer]:
+                        - /url: /@dave.madison
+                    - generic "5.64 thousand subscribers" [ref=e126]: 5.64K subscribers
+                - button "Subscribe to Dave Madison." [ref=e132] [cursor=pointer]:
+                  - generic [ref=e133]: Subscribe
+              - generic [ref=e140]:
+                - generic [ref=e141]:
+                  - generic [ref=e145]:
+                    - button "like this video along with 7,399 other people" [ref=e149] [cursor=pointer]:
+                      - generic [ref=e152]: 7.3K
+                    - button "Dislike this video" [ref=e159] [cursor=pointer]
+                  - button "Share" [ref=e167] [cursor=pointer]:
+                    - generic [ref=e170]: Share
+                - generic [ref=e174]:
+                  - generic [ref=e176]:
+                    - button "Download" [ref=e178] [cursor=pointer]:
+                      - generic [ref=e181]: Download
+                    - tooltip "tooltip"
+                  - button "Save to playlist" [ref=e187] [cursor=pointer]:
+                    - generic [ref=e190]: Save
+                - button "More actions" [ref=e195] [cursor=pointer]
+            - generic [ref=e203] [cursor=pointer]:
+              - generic [ref=e204]:
+                - generic [ref=e206]: 4.5M views 8 years ago
+                - tooltip "tooltip"
+              - generic [ref=e207]:
+                - generic [ref=e208]:
+                  - generic [ref=e211]: This is a color test video intended for 'ambilight' devices. It cycles through all solid colors, then opposite colors, and finally all colors at once. It also begins on white and ends on black for balance and brightness testing.
+                  - generic: …
+                - button "...more" [ref=e212]
+          - text: •
+      - generic [ref=e219]:
+        - generic [ref=e221] [cursor=pointer]:
+          - link [ref=e222]:
+            - /url: /watch?v=BRXbuTJkG3c
+            - generic [ref=e229]: 2:00:01
+          - generic [ref=e231]:
+            - generic [ref=e232]:
+              - heading "🌈 4K Screensaver | Pink-Blue Neon Pentagon Tunnel – Psychedelic VJ Loop (No Sound) 🔺 2 hours" [level=3] [ref=e233]:
+                - link "🌈 4K Screensaver | Pink-Blue Neon Pentagon Tunnel – Psychedelic VJ Loop (No Sound) 🔺 2 hours" [ref=e234]:
+                  - /url: /watch?v=BRXbuTJkG3c
+                  - text: 🌈 4K Screensaver | Pink-Blue Neon Pentagon Tunnel – Psychedelic VJ Loop (No Sound) 🔺
+              - generic [ref=e236]:
+                - generic [ref=e238]: Un Festival de Lumières Abstraites
+                - generic [ref=e239]:
+                  - generic [ref=e240]: 448K views
+                  - generic [ref=e241]: •
+                  - generic [ref=e242]: 9 months ago
+            - button "More actions" [ref=e245]
+        - generic [ref=e252] [cursor=pointer]:
+          - link [ref=e253]:
+            - /url: /watch?v=-jmxazyoY5M
+            - generic [ref=e260]: 3:08
+          - generic [ref=e262]:
+            - generic [ref=e263]:
+              - heading "Pattern video for AmbiVision ambient light calibration and alignment 3 minutes, 8 seconds" [level=3] [ref=e264]:
+                - link "Pattern video for AmbiVision ambient light calibration and alignment 3 minutes, 8 seconds" [ref=e265]:
+                  - /url: /watch?v=-jmxazyoY5M
+                  - text: Pattern video for AmbiVision ambient light calibration and alignment
+              - generic [ref=e267]:
+                - generic [ref=e269]: AmbiVision TV
+                - generic [ref=e270]:
+                  - generic [ref=e271]: 577K views
+                  - generic [ref=e272]: •
+                  - generic [ref=e273]: 4 years ago
+            - button "More actions" [ref=e276]
+        - generic [ref=e283] [cursor=pointer]:
+          - link [ref=e284]:
+            - /url: /watch?v=qC0vDKVPCrw&list=PL3bIO3E0Q8OTgdtnCaSSavXosVYz28Ly9
+            - generic [ref=e296]: 11 videos
+          - generic [ref=e299]:
+            - heading "Ambilight TEST Video" [level=3] [ref=e300]:
+              - link "Ambilight TEST Video" [ref=e301]:
+                - /url: /watch?v=qC0vDKVPCrw&list=PL3bIO3E0Q8OTgdtnCaSSavXosVYz28Ly9
+            - generic [ref=e303]:
+              - generic [ref=e304]:
+                - link "Алексей Соколов" [ref=e307]:
+                  - /url: /@l6al
+                - generic [ref=e308]: •
+                - link "Playlist" [ref=e311]:
+                  - /url: /@l6al
+              - link "View full playlist" [ref=e315]:
+                - /url: /playlist?list=PL3bIO3E0Q8OTgdtnCaSSavXosVYz28Ly9
+        - generic [ref=e317] [cursor=pointer]:
+          - link [ref=e318]:
+            - /url: /watch?v=y9n6HkftavM&list=RDy9n6HkftavM&start_radio=1&pp=oAcB
+            - generic [ref=e326]: 14:11
+          - generic [ref=e328]:
+            - generic [ref=e329]:
+              - heading "Color Burst HDR Dolby Vision™ 12K 60FPS 14 minutes, 11 seconds" [level=3] [ref=e330]:
+                - link "Color Burst HDR Dolby Vision™ 12K 60FPS 14 minutes, 11 seconds" [ref=e331]:
+                  - /url: /watch?v=y9n6HkftavM&list=RDy9n6HkftavM&start_radio=1&pp=oAcB
+                  - text: Color Burst HDR Dolby Vision™ 12K 60FPS
+              - generic [ref=e333]:
+                - generic [ref=e335]:
+                  - text: 8K Paradise
+                  - img [ref=e338]
+                - generic [ref=e339]:
+                  - generic [ref=e340]: 6.3M views
+                  - generic [ref=e341]: •
+                  - generic [ref=e342]: 2 years ago
+            - button "More actions" [ref=e345]
+        - generic [ref=e352] [cursor=pointer]:
+          - link [ref=e353]:
+            - /url: /watch?v=qC0vDKVPCrw&list=RDqC0vDKVPCrw&start_radio=1&pp=oAcB
+            - generic [ref=e361]: 3:28
+          - generic [ref=e363]:
+            - generic [ref=e364]:
+              - heading "Fluid Sim Hue Test 3 minutes, 28 seconds" [level=3] [ref=e365]:
+                - link "Fluid Sim Hue Test 3 minutes, 28 seconds" [ref=e366]:
+                  - /url: /watch?v=qC0vDKVPCrw&list=RDqC0vDKVPCrw&start_radio=1&pp=oAcB
+                  - text: Fluid Sim Hue Test
+              - generic [ref=e368]:
+                - generic [ref=e370]: MrPacMan36
+                - generic [ref=e371]:
+                  - generic [ref=e372]: 4.6M views
+                  - generic [ref=e373]: •
+                  - generic [ref=e374]: 6 years ago
+            - button "More actions" [ref=e377]
+        - generic [ref=e384] [cursor=pointer]:
+          - link [ref=e385]:
+            - /url: /watch?v=xJ_fFLgGHiU
+            - generic [ref=e392]: 2:57:47
+          - generic [ref=e394]:
+            - generic [ref=e395]:
+              - heading "VJ LOOP NEON Red Blue Tunnel Abstract Background Video Simple Light Pattern 4k Screensaver 2 hours, 57 minutes" [level=3] [ref=e396]:
+                - link "VJ LOOP NEON Red Blue Tunnel Abstract Background Video Simple Light Pattern 4k Screensaver 2 hours, 57 minutes" [ref=e397]:
+                  - /url: /watch?v=xJ_fFLgGHiU
+                  - text: VJ LOOP NEON Red Blue Tunnel Abstract Background Video Simple Light Pattern 4k Screensaver
+              - generic [ref=e399]:
+                - generic [ref=e401]:
+                  - text: Chill & Relax with Visual Effects
+                  - img [ref=e404]
+                - generic [ref=e405]:
+                  - generic [ref=e406]: 3.5M views
+                  - generic [ref=e407]: •
+                  - generic [ref=e408]: 4 years ago
+            - button "More actions" [ref=e411]

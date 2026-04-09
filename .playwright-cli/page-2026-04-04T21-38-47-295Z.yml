@@ -1,0 +1,998 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - button "Guide" [ref=e9] [cursor=pointer]:
+            - generic [ref=e12]:
+              - img
+          - generic [ref=e13]:
+            - link "YouTube Home" [ref=e14] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e19]:
+                - img
+            - generic [ref=e20]: IN
+          - button "Skip navigation" [ref=e24] [cursor=pointer]:
+            - generic [ref=e25]: Skip navigation
+        - generic [ref=e29]:
+          - search [ref=e30]:
+            - generic [ref=e31]:
+              - combobox "Search" [expanded] [ref=e34]
+              - button "Search" [ref=e35] [cursor=pointer]:
+                - generic [ref=e38]:
+                  - img
+          - generic [ref=e40]:
+            - button "Search with your voice" [ref=e42] [cursor=pointer]:
+              - generic [ref=e46]:
+                - img
+            - tooltip "tooltip"
+        - generic [ref=e51]:
+          - button "Settings" [ref=e56] [cursor=pointer]:
+            - generic [ref=e59]:
+              - img
+          - link "Sign in" [ref=e62] [cursor=pointer]:
+            - /url: https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fwatch%253Fv%253Dy9n6HkftavM%2526list%253DRDIFMtueTmqVo%2526index%253D10&hl=en&ec=65620
+            - generic [ref=e66]:
+              - img
+            - generic [ref=e67]: Sign in
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - generic [ref=e75]:
+          - complementary [ref=e82]:
+            - generic "YouTube Video Player" [ref=e85]:
+              - button "Play" [ref=e89] [cursor=pointer]:
+                - img
+              - button "Show cards" [ref=e91] [cursor=pointer]:
+                - generic [ref=e93]:
+                  - img
+              - generic [ref=e94]:
+                - generic [ref=e95] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - img
+                  - slider "Seek slider" [ref=e96]
+                  - generic:
+                    - generic:
+                      - generic:
+                        - slider "Click or scroll the panel for the precise seeking."
+                - generic [ref=e105]:
+                  - generic [ref=e106]:
+                    - button "Pause (k)" [ref=e107] [cursor=pointer]:
+                      - img
+                    - button "Previous (SHIFT+p)" [ref=e108] [cursor=pointer]:
+                      - img
+                    - button "Next (SHIFT+n)" [ref=e109] [cursor=pointer]:
+                      - img
+                    - generic [ref=e110]:
+                      - button "Mute (m)" [ref=e112] [cursor=pointer]:
+                        - img
+                      - slider "Volume"
+                    - button "0 Minutes 0 Seconds of 14 Minutes 10 Seconds" [ref=e116] [cursor=pointer]: 0:00 / 14:10
+                  - generic [ref=e117]:
+                    - button "Settings" [ref=e119] [cursor=pointer]:
+                      - img
+                    - generic [ref=e120]:
+                      - button "Theater mode (t)" [ref=e121] [cursor=pointer]:
+                        - img
+                      - button "Full screen (f)" [ref=e122] [cursor=pointer]:
+                        - img
+          - generic [ref=e123]:
+            - generic [ref=e125]:
+              - heading "Color Burst HDR Dolby Vision™ 12K 60FPS" [level=1] [ref=e127]
+              - generic [ref=e128]:
+                - generic [ref=e129]:
+                  - generic [ref=e130]:
+                    - link [ref=e131] [cursor=pointer]:
+                      - /url: /@8kparadise
+                    - generic [ref=e133]:
+                      - generic [ref=e134]:
+                        - generic "8K Paradise" [ref=e137]:
+                          - link "8K Paradise" [ref=e138] [cursor=pointer]:
+                            - /url: /@8kparadise
+                        - img "Verified" [ref=e141]:
+                          - generic [ref=e144]:
+                            - img
+                      - generic "348 thousand subscribers" [ref=e145]: 348K subscribers
+                    - button "Join this channel" [ref=e152] [cursor=pointer]:
+                      - generic [ref=e153]: Join
+                  - generic [ref=e160]:
+                    - button "Subscribe to 8K Paradise." [ref=e162] [cursor=pointer]:
+                      - generic [ref=e163]: Subscribe
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                      - generic:
+                        - img
+                - generic [ref=e170]:
+                  - generic [ref=e171]:
+                    - generic [ref=e175]:
+                      - button "like this video along with 63,901 other people" [ref=e179] [cursor=pointer]:
+                        - generic [ref=e183]:
+                          - img
+                        - generic [ref=e184]: 63K
+                      - button "Dislike this video" [ref=e191] [cursor=pointer]:
+                        - generic [ref=e195]:
+                          - img
+                    - button "Share" [ref=e201] [cursor=pointer]:
+                      - generic [ref=e205]:
+                        - img
+                      - generic [ref=e206]: Share
+                  - generic [ref=e210]:
+                    - button "Save to playlist" [ref=e213] [cursor=pointer]:
+                      - generic [ref=e217]:
+                        - img
+                      - generic [ref=e218]: Save
+                    - generic [ref=e223]:
+                      - button "Download" [ref=e225] [cursor=pointer]:
+                        - generic [ref=e229]:
+                          - img
+                        - generic [ref=e230]: Download
+                      - tooltip "tooltip"
+                  - button "More actions" [ref=e235] [cursor=pointer]:
+                    - generic [ref=e239]:
+                      - img
+              - generic [ref=e245] [cursor=pointer]:
+                - generic [ref=e246]:
+                  - generic [ref=e248]:
+                    - text: 6.3M views 2 years ago
+                    - link "12K HDR VIDEO" [ref=e249]:
+                      - /url: /playlist?list=PLzBOO8Y5dcaCWmwV46WZ3IZW-d6c0c2-b
+                  - tooltip "tooltip"
+                - generic [ref=e250]:
+                  - generic [ref=e251]:
+                    - generic [ref=e254]: High Quality Real 12K HDR VIDEO ULTRA HD 240FPS 120FPS 60FPS Dolby Vision, For Your 8K / 12K TV - Apple XDR Display, Samsung QLED TV, LG OLED TV, Sony Bravia TV, iPhone, Huawei, Xiaomi, Asus Phone and your other 8K / 12K HDR Devices.
+                    - generic: …
+                  - button "...more" [ref=e255]
+            - text: •
+        - generic [ref=e257]:
+          - generic [ref=e259]:
+            - generic [ref=e261]:
+              - generic [ref=e262]:
+                - generic [ref=e263]:
+                  - heading "Mix - The Earth in Ultra Clarity (4K HDR) | Epic Dolby Vision Compilation of Earth’s Beauty" [level=3] [ref=e264]:
+                    - generic "Mix - The Earth in Ultra Clarity (4K HDR) | Epic Dolby Vision Compilation of Earth’s Beauty" [ref=e265]
+                  - generic [ref=e266]:
+                    - generic "Mixes are playlists YouTube makes for you" [ref=e267]
+                    - text: "-"
+                - button "Collapse" [ref=e269] [cursor=pointer]:
+                  - generic [ref=e272]:
+                    - img
+              - button "Action menu" [ref=e278] [cursor=pointer]:
+                - generic [ref=e281]:
+                  - img
+            - generic [ref=e282]:
+              - generic [ref=e283]:
+                - link "Color Burst HDR Dolby Vision™ 12K 60FPS 14 minutes, 11 seconds 8K Paradise" [ref=e284] [cursor=pointer]:
+                  - /url: /watch?v=y9n6HkftavM&list=RDIFMtueTmqVo&index=1&pp=8AUB
+                  - generic [ref=e285]:
+                    - generic [ref=e290]:
+                      - img
+                    - link [ref=e293]:
+                      - /url: /watch?v=y9n6HkftavM&list=RDIFMtueTmqVo&index=1&pp=8AUB
+                      - img [ref=e295]
+                      - img [ref=e298]:
+                        - generic [ref=e299]: 14:11
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e300]:
+                      - heading "Color Burst HDR Dolby Vision™ 12K 60FPS 14 minutes, 11 seconds" [level=4] [ref=e301]:
+                        - generic "Color Burst HDR Dolby Vision™ 12K 60FPS 14 minutes, 11 seconds" [ref=e302]: Color Burst HDR Dolby Vision™ 12K 60FPS
+                      - generic [ref=e304]: 8K Paradise
+                - button "Action menu" [ref=e308] [cursor=pointer]:
+                  - generic [ref=e311]:
+                    - img
+              - generic [ref=e312]:
+                - link "The Earth in Ultra Clarity (4K HDR) | Epic Dolby Vision Compilation of Earth’s Beauty 56 minutes 8K VISION" [ref=e313] [cursor=pointer]:
+                  - /url: /watch?v=IFMtueTmqVo&list=RDIFMtueTmqVo&index=2&pp=8AUB
+                  - generic [ref=e314]:
+                    - link [ref=e318]:
+                      - /url: /watch?v=IFMtueTmqVo&list=RDIFMtueTmqVo&index=2&pp=8AUB
+                      - img [ref=e320]
+                      - img [ref=e323]:
+                        - generic [ref=e324]: 56:28
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e325]:
+                      - heading "The Earth in Ultra Clarity (4K HDR) | Epic Dolby Vision Compilation of Earth’s Beauty 56 minutes" [level=4] [ref=e326]:
+                        - generic "The Earth in Ultra Clarity (4K HDR) | Epic Dolby Vision Compilation of Earth’s Beauty 56 minutes" [ref=e327]: The Earth in Ultra Clarity (4K HDR) | Epic Dolby Vision Compilation of Earth’s Beauty
+                      - generic [ref=e329]: 8K VISION
+                - button "Action menu" [ref=e333] [cursor=pointer]:
+                  - generic [ref=e336]:
+                    - img
+              - generic [ref=e337]:
+                - link "Mind Blowing HDR 16K 60FPS Video Perfect for 4K HDR / 8K HDR TV - Dolby Vision 10 minutes, 5 seconds 12K VIDEO ULTRA HD" [ref=e338] [cursor=pointer]:
+                  - /url: /watch?v=pKl-2Bw1OVY&list=RDIFMtueTmqVo&index=3&pp=8AUB
+                  - generic [ref=e339]:
+                    - link [ref=e343]:
+                      - /url: /watch?v=pKl-2Bw1OVY&list=RDIFMtueTmqVo&index=3&pp=8AUB
+                      - img [ref=e345]
+                      - img [ref=e348]:
+                        - generic [ref=e349]: 10:05
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e350]:
+                      - heading "Mind Blowing HDR 16K 60FPS Video Perfect for 4K HDR / 8K HDR TV - Dolby Vision 10 minutes, 5 seconds" [level=4] [ref=e351]:
+                        - generic "Mind Blowing HDR 16K 60FPS Video Perfect for 4K HDR / 8K HDR TV - Dolby Vision 10 minutes, 5 seconds" [ref=e352]: Mind Blowing HDR 16K 60FPS Video Perfect for 4K HDR / 8K HDR TV - Dolby Vision
+                      - generic [ref=e354]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e358] [cursor=pointer]:
+                  - generic [ref=e361]:
+                    - img
+              - generic [ref=e362]:
+                - link "The Coolest Dolby Vision 16K HDR 60fps (8K Video ULTRA HD) 10 minutes, 16 seconds 8K Video ULTRA HD" [ref=e363] [cursor=pointer]:
+                  - /url: /watch?v=56hEFqjKG0s&list=RDIFMtueTmqVo&index=4&pp=8AUB0gcJCdkKAYcqIYzv
+                  - generic [ref=e364]:
+                    - link [ref=e368]:
+                      - /url: /watch?v=56hEFqjKG0s&list=RDIFMtueTmqVo&index=4&pp=8AUB0gcJCdkKAYcqIYzv
+                      - img [ref=e370]
+                      - img [ref=e373]:
+                        - generic [ref=e374]: 10:16
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e375]:
+                      - heading "The Coolest Dolby Vision 16K HDR 60fps (8K Video ULTRA HD) 10 minutes, 16 seconds" [level=4] [ref=e376]:
+                        - generic "The Coolest Dolby Vision 16K HDR 60fps (8K Video ULTRA HD) 10 minutes, 16 seconds" [ref=e377]: The Coolest Dolby Vision 16K HDR 60fps (8K Video ULTRA HD)
+                      - generic [ref=e379]: 8K Video ULTRA HD
+                - button "Action menu" [ref=e383] [cursor=pointer]:
+                  - generic [ref=e386]:
+                    - img
+              - generic [ref=e387]:
+                - link "BIG SHOW in HDR 16K Video ULTRA HD | Dolby Vision 10 minutes, 8 seconds 8K Video ULTRA HD" [ref=e388] [cursor=pointer]:
+                  - /url: /watch?v=OlKQcgiiOXI&list=RDIFMtueTmqVo&index=5&pp=8AUB
+                  - generic [ref=e389]:
+                    - link [ref=e393]:
+                      - /url: /watch?v=OlKQcgiiOXI&list=RDIFMtueTmqVo&index=5&pp=8AUB
+                      - img [ref=e395]
+                      - img [ref=e398]:
+                        - generic [ref=e399]: 10:08
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e400]:
+                      - heading "BIG SHOW in HDR 16K Video ULTRA HD | Dolby Vision 10 minutes, 8 seconds" [level=4] [ref=e401]:
+                        - generic "BIG SHOW in HDR 16K Video ULTRA HD | Dolby Vision 10 minutes, 8 seconds" [ref=e402]: BIG SHOW in HDR 16K Video ULTRA HD | Dolby Vision
+                      - generic [ref=e404]: 8K Video ULTRA HD
+                - button "Action menu" [ref=e408] [cursor=pointer]:
+                  - generic [ref=e411]:
+                    - img
+              - generic [ref=e412]:
+                - link "Best Nature Views Ever Filmed | 12K Dolby Vision HDR + Relaxing Soundtrack 55 minutes 8K VISION" [ref=e413] [cursor=pointer]:
+                  - /url: /watch?v=NWWG84R6TJ8&list=RDIFMtueTmqVo&index=6&pp=8AUB
+                  - generic [ref=e414]:
+                    - link [ref=e418]:
+                      - /url: /watch?v=NWWG84R6TJ8&list=RDIFMtueTmqVo&index=6&pp=8AUB
+                      - img [ref=e420]
+                      - img [ref=e423]:
+                        - generic [ref=e424]: 55:41
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e425]:
+                      - heading "Best Nature Views Ever Filmed | 12K Dolby Vision HDR + Relaxing Soundtrack 55 minutes" [level=4] [ref=e426]:
+                        - generic "Best Nature Views Ever Filmed | 12K Dolby Vision HDR + Relaxing Soundtrack 55 minutes" [ref=e427]: Best Nature Views Ever Filmed | 12K Dolby Vision HDR + Relaxing Soundtrack
+                      - generic [ref=e429]: 8K VISION
+                - button "Action menu" [ref=e433] [cursor=pointer]:
+                  - generic [ref=e436]:
+                    - img
+              - generic [ref=e437]:
+                - link "MAJESTIC 12K HDR 120fps Video Dolby Vision (8K Video) 10 minutes, 10 seconds 12K VIDEO ULTRA HD" [ref=e438] [cursor=pointer]:
+                  - /url: /watch?v=NPBiLXkhzFo&list=RDIFMtueTmqVo&index=7&pp=8AUB
+                  - generic [ref=e439]:
+                    - link [ref=e443]:
+                      - /url: /watch?v=NPBiLXkhzFo&list=RDIFMtueTmqVo&index=7&pp=8AUB
+                      - img [ref=e445]
+                      - img [ref=e448]:
+                        - generic [ref=e449]: 10:10
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e450]:
+                      - heading "MAJESTIC 12K HDR 120fps Video Dolby Vision (8K Video) 10 minutes, 10 seconds" [level=4] [ref=e451]:
+                        - generic "MAJESTIC 12K HDR 120fps Video Dolby Vision (8K Video) 10 minutes, 10 seconds" [ref=e452]: MAJESTIC 12K HDR 120fps Video Dolby Vision (8K Video)
+                      - generic [ref=e454]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e458] [cursor=pointer]:
+                  - generic [ref=e461]:
+                    - img
+              - generic [ref=e462]:
+                - link "Norway in 4K ULTRA HD 60FPS, Scenic Relaxation Films with Music 16 minutes Scenic Relaxation Films" [ref=e463] [cursor=pointer]:
+                  - /url: /watch?v=aQOli947aJ0&list=RDIFMtueTmqVo&index=8&pp=8AUB
+                  - generic [ref=e464]:
+                    - link [ref=e468]:
+                      - /url: /watch?v=aQOli947aJ0&list=RDIFMtueTmqVo&index=8&pp=8AUB
+                      - img [ref=e470]
+                      - img [ref=e473]:
+                        - generic [ref=e474]: 16:47
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e475]:
+                      - heading "Norway in 4K ULTRA HD 60FPS, Scenic Relaxation Films with Music 16 minutes" [level=4] [ref=e476]:
+                        - generic "Norway in 4K ULTRA HD 60FPS, Scenic Relaxation Films with Music 16 minutes" [ref=e477]: Norway in 4K ULTRA HD 60FPS, Scenic Relaxation Films with Music
+                      - generic [ref=e479]: Scenic Relaxation Films
+                - button "Action menu" [ref=e483] [cursor=pointer]:
+                  - generic [ref=e486]:
+                    - img
+              - generic [ref=e487]:
+                - link "Maldives 12K HDR 60fps Dolby Vision 5 minutes, 20 seconds 8K Earth" [ref=e488] [cursor=pointer]:
+                  - /url: /watch?v=W4YfDg-dKzk&list=RDIFMtueTmqVo&index=9&pp=8AUB
+                  - generic [ref=e489]:
+                    - link [ref=e493]:
+                      - /url: /watch?v=W4YfDg-dKzk&list=RDIFMtueTmqVo&index=9&pp=8AUB
+                      - img [ref=e495]
+                      - img [ref=e498]:
+                        - generic [ref=e499]: 5:20
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e500]:
+                      - heading "Maldives 12K HDR 60fps Dolby Vision 5 minutes, 20 seconds" [level=4] [ref=e501]:
+                        - generic "Maldives 12K HDR 60fps Dolby Vision 5 minutes, 20 seconds" [ref=e502]: Maldives 12K HDR 60fps Dolby Vision
+                      - generic [ref=e504]: 8K Earth
+                - button "Action menu" [ref=e508] [cursor=pointer]:
+                  - generic [ref=e511]:
+                    - img
+              - generic [ref=e512]:
+                - link "Maui 4K - Scenic Relaxation Film With Calming Music 1 hour, 1 minute Scenic Relaxation" [ref=e513] [cursor=pointer]:
+                  - /url: /watch?v=62bWUYRxi8g&list=RDIFMtueTmqVo&index=10&pp=8AUB
+                  - generic [ref=e514]:
+                    - link [ref=e518]:
+                      - /url: /watch?v=62bWUYRxi8g&list=RDIFMtueTmqVo&index=10&pp=8AUB
+                      - img [ref=e520]
+                      - img [ref=e523]:
+                        - generic [ref=e524]: 1:01:03
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e525]:
+                      - heading "Maui 4K - Scenic Relaxation Film With Calming Music 1 hour, 1 minute" [level=4] [ref=e526]:
+                        - generic "Maui 4K - Scenic Relaxation Film With Calming Music 1 hour, 1 minute" [ref=e527]: Maui 4K - Scenic Relaxation Film With Calming Music
+                      - generic [ref=e529]: Scenic Relaxation
+                - button "Action menu" [ref=e533] [cursor=pointer]:
+                  - generic [ref=e536]:
+                    - img
+              - generic [ref=e537]:
+                - link "The Alps 4K - Scenic Relaxation Film With Calming Music 1 hour Scenic Relaxation" [ref=e538] [cursor=pointer]:
+                  - /url: /watch?v=BTMjD7_evjE&list=RDIFMtueTmqVo&index=11&pp=8AUB
+                  - generic [ref=e539]:
+                    - link [ref=e543]:
+                      - /url: /watch?v=BTMjD7_evjE&list=RDIFMtueTmqVo&index=11&pp=8AUB
+                      - img [ref=e545]
+                      - img [ref=e548]:
+                        - generic [ref=e549]: 1:00:48
+                      - generic:
+                        - generic:
+                          - img
+                    - generic [ref=e550]:
+                      - heading "The Alps 4K - Scenic Relaxation Film With Calming Music 1 hour" [level=4] [ref=e551]:
+                        - generic "The Alps 4K - Scenic Relaxation Film With Calming Music 1 hour" [ref=e552]: The Alps 4K - Scenic Relaxation Film With Calming Music
+                      - generic [ref=e554]: Scenic Relaxation
+                - button "Action menu" [ref=e558] [cursor=pointer]:
+                  - generic [ref=e561]:
+                    - img
+              - generic [ref=e562]:
+                - link "Only The Best HDR 4K 60FPS Video - Dolby Vision OLED Demo (4K / 8K TV) 10 minutes, 2 seconds 12K VIDEO ULTRA HD" [ref=e563] [cursor=pointer]:
+                  - /url: /watch?v=qLVYyW_-nR0&list=RDIFMtueTmqVo&index=12&pp=8AUB0gcJCdkKAYcqIYzv
+                  - generic [ref=e564]:
+                    - link [ref=e568]:
+                      - /url: /watch?v=qLVYyW_-nR0&list=RDIFMtueTmqVo&index=12&pp=8AUB0gcJCdkKAYcqIYzv
+                    - generic [ref=e570]:
+                      - heading "Only The Best HDR 4K 60FPS Video - Dolby Vision OLED Demo (4K / 8K TV) 10 minutes, 2 seconds" [level=4] [ref=e571]:
+                        - generic "Only The Best HDR 4K 60FPS Video - Dolby Vision OLED Demo (4K / 8K TV) 10 minutes, 2 seconds" [ref=e572]: Only The Best HDR 4K 60FPS Video - Dolby Vision OLED Demo (4K / 8K TV)
+                      - generic [ref=e574]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e578] [cursor=pointer]:
+                  - generic [ref=e581]:
+                    - img
+              - generic [ref=e582]:
+                - link "The Coolest 12K Video ULTRA HD 240 fps - Dolby Vision HDR 12K 10 minutes, 15 seconds 12K VIDEO ULTRA HD" [ref=e583] [cursor=pointer]:
+                  - /url: /watch?v=mi_jiRI8kjo&list=RDIFMtueTmqVo&index=13&pp=8AUB
+                  - generic [ref=e584]:
+                    - link [ref=e588]:
+                      - /url: /watch?v=mi_jiRI8kjo&list=RDIFMtueTmqVo&index=13&pp=8AUB
+                    - generic [ref=e590]:
+                      - heading "The Coolest 12K Video ULTRA HD 240 fps - Dolby Vision HDR 12K 10 minutes, 15 seconds" [level=4] [ref=e591]:
+                        - generic "The Coolest 12K Video ULTRA HD 240 fps - Dolby Vision HDR 12K 10 minutes, 15 seconds" [ref=e592]: The Coolest 12K Video ULTRA HD 240 fps - Dolby Vision HDR 12K
+                      - generic [ref=e594]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e598] [cursor=pointer]:
+                  - generic [ref=e601]:
+                    - img
+              - generic [ref=e602]:
+                - link "World’s Most Stunning Views | Captured in 4K HDR Dolby Vision™ 60 FPS 57 minutes 8K VISION" [ref=e603] [cursor=pointer]:
+                  - /url: /watch?v=r05C8Vk81lQ&list=RDIFMtueTmqVo&index=14&pp=8AUB
+                  - generic [ref=e604]:
+                    - link [ref=e608]:
+                      - /url: /watch?v=r05C8Vk81lQ&list=RDIFMtueTmqVo&index=14&pp=8AUB
+                    - generic [ref=e610]:
+                      - heading "World’s Most Stunning Views | Captured in 4K HDR Dolby Vision™ 60 FPS 57 minutes" [level=4] [ref=e611]:
+                        - generic "World’s Most Stunning Views | Captured in 4K HDR Dolby Vision™ 60 FPS 57 minutes" [ref=e612]: World’s Most Stunning Views | Captured in 4K HDR Dolby Vision™ 60 FPS
+                      - generic [ref=e614]: 8K VISION
+                - button "Action menu" [ref=e618] [cursor=pointer]:
+                  - generic [ref=e621]:
+                    - img
+              - generic [ref=e622]:
+                - link "4K HDR ULTRA HD 120 fps - Best of 8K Video - Dolby Vision 10 minutes, 5 seconds HDR VISION" [ref=e623] [cursor=pointer]:
+                  - /url: /watch?v=DdKB1jQALPw&list=RDIFMtueTmqVo&index=15&pp=8AUB
+                  - generic [ref=e624]:
+                    - link [ref=e628]:
+                      - /url: /watch?v=DdKB1jQALPw&list=RDIFMtueTmqVo&index=15&pp=8AUB
+                    - generic [ref=e630]:
+                      - heading "4K HDR ULTRA HD 120 fps - Best of 8K Video - Dolby Vision 10 minutes, 5 seconds" [level=4] [ref=e631]:
+                        - generic "4K HDR ULTRA HD 120 fps - Best of 8K Video - Dolby Vision 10 minutes, 5 seconds" [ref=e632]: 4K HDR ULTRA HD 120 fps - Best of 8K Video - Dolby Vision
+                      - generic [ref=e634]: HDR VISION
+                - button "Action menu" [ref=e638] [cursor=pointer]:
+                  - generic [ref=e641]:
+                    - img
+              - generic [ref=e642]:
+                - link "World's Hidden Heaven Dolby Vision - 12K HDR Video ULTRA HD 120FPS 10 minutes, 2 seconds 12K VIDEO ULTRA HD" [ref=e643] [cursor=pointer]:
+                  - /url: /watch?v=Uxf2YMxXtAg&list=RDIFMtueTmqVo&index=16&pp=8AUB
+                  - generic [ref=e644]:
+                    - link [ref=e648]:
+                      - /url: /watch?v=Uxf2YMxXtAg&list=RDIFMtueTmqVo&index=16&pp=8AUB
+                    - generic [ref=e650]:
+                      - heading "World's Hidden Heaven Dolby Vision - 12K HDR Video ULTRA HD 120FPS 10 minutes, 2 seconds" [level=4] [ref=e651]:
+                        - generic "World's Hidden Heaven Dolby Vision - 12K HDR Video ULTRA HD 120FPS 10 minutes, 2 seconds" [ref=e652]: World's Hidden Heaven Dolby Vision - 12K HDR Video ULTRA HD 120FPS
+                      - generic [ref=e654]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e658] [cursor=pointer]:
+                  - generic [ref=e661]:
+                    - img
+              - generic [ref=e662]:
+                - link "Epic 4K Video | HDR 4K 60fps ULTRA HD - Dolby Vision | OLED DEMO 5 minutes, 34 seconds 4k Epic Horizon" [ref=e663] [cursor=pointer]:
+                  - /url: /watch?v=qQJulG3P8xk&list=RDIFMtueTmqVo&index=17&pp=8AUB
+                  - generic [ref=e664]:
+                    - link [ref=e668]:
+                      - /url: /watch?v=qQJulG3P8xk&list=RDIFMtueTmqVo&index=17&pp=8AUB
+                    - generic [ref=e670]:
+                      - heading "Epic 4K Video | HDR 4K 60fps ULTRA HD - Dolby Vision | OLED DEMO 5 minutes, 34 seconds" [level=4] [ref=e671]:
+                        - generic "Epic 4K Video | HDR 4K 60fps ULTRA HD - Dolby Vision | OLED DEMO 5 minutes, 34 seconds" [ref=e672]: Epic 4K Video | HDR 4K 60fps ULTRA HD - Dolby Vision | OLED DEMO
+                      - generic [ref=e674]: 4k Epic Horizon
+                - button "Action menu" [ref=e678] [cursor=pointer]:
+                  - generic [ref=e681]:
+                    - img
+              - generic [ref=e682]:
+                - 'link "The Clarity 12K HDR 120 fps Dolby Vision (12K Video) #12k #hdr #8k 10 minutes, 17 seconds 12K VIDEO ULTRA HD" [ref=e683] [cursor=pointer]':
+                  - /url: /watch?v=NFFGbZIqi3U&list=RDIFMtueTmqVo&index=18&pp=8AUB
+                  - generic [ref=e684]:
+                    - link [ref=e688]:
+                      - /url: /watch?v=NFFGbZIqi3U&list=RDIFMtueTmqVo&index=18&pp=8AUB
+                    - generic [ref=e690]:
+                      - 'heading "The Clarity 12K HDR 120 fps Dolby Vision (12K Video) #12k #hdr #8k 10 minutes, 17 seconds" [level=4] [ref=e691]':
+                        - 'generic "The Clarity 12K HDR 120 fps Dolby Vision (12K Video) #12k #hdr #8k 10 minutes, 17 seconds" [ref=e692]': "The Clarity 12K HDR 120 fps Dolby Vision (12K Video) #12k #hdr #8k"
+                      - generic [ref=e694]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e698] [cursor=pointer]:
+                  - generic [ref=e701]:
+                    - img
+              - generic [ref=e702]:
+                - link "5 Minutes of Interstellar in 4K 4 minutes, 41 seconds Phased" [ref=e703] [cursor=pointer]:
+                  - /url: /watch?v=HTvJl71zmf4&list=RDIFMtueTmqVo&index=19&pp=8AUB
+                  - generic [ref=e704]:
+                    - link [ref=e708]:
+                      - /url: /watch?v=HTvJl71zmf4&list=RDIFMtueTmqVo&index=19&pp=8AUB
+                    - generic [ref=e710]:
+                      - heading "5 Minutes of Interstellar in 4K 4 minutes, 41 seconds" [level=4] [ref=e711]:
+                        - generic "5 Minutes of Interstellar in 4K 4 minutes, 41 seconds" [ref=e712]: 5 Minutes of Interstellar in 4K
+                      - generic [ref=e714]: Phased
+                - button "Action menu" [ref=e718] [cursor=pointer]:
+                  - generic [ref=e721]:
+                    - img
+              - generic [ref=e722]:
+                - link "4K HDR That Redefines Visual Brilliance – Dolby Vision OLED (60FPS) 9 minutes, 56 seconds OLED Zone" [ref=e723] [cursor=pointer]:
+                  - /url: /watch?v=1BGUxPULq34&list=RDIFMtueTmqVo&index=20&pp=8AUB
+                  - generic [ref=e724]:
+                    - link [ref=e728]:
+                      - /url: /watch?v=1BGUxPULq34&list=RDIFMtueTmqVo&index=20&pp=8AUB
+                    - generic [ref=e730]:
+                      - heading "4K HDR That Redefines Visual Brilliance – Dolby Vision OLED (60FPS) 9 minutes, 56 seconds" [level=4] [ref=e731]:
+                        - generic "4K HDR That Redefines Visual Brilliance – Dolby Vision OLED (60FPS) 9 minutes, 56 seconds" [ref=e732]: 4K HDR That Redefines Visual Brilliance – Dolby Vision OLED (60FPS)
+                      - generic [ref=e734]: OLED Zone
+                - button "Action menu" [ref=e738] [cursor=pointer]:
+                  - generic [ref=e741]:
+                    - img
+              - generic [ref=e742]:
+                - link "Madeira, Portugal 🇵🇹 in 4K Ultra HD | Drone Video 11 minutes Explore The World 4K" [ref=e743] [cursor=pointer]:
+                  - /url: /watch?v=qfXyk5nb9Zo&list=RDIFMtueTmqVo&index=21&pp=8AUB
+                  - generic [ref=e744]:
+                    - link [ref=e748]:
+                      - /url: /watch?v=qfXyk5nb9Zo&list=RDIFMtueTmqVo&index=21&pp=8AUB
+                    - generic [ref=e750]:
+                      - heading "Madeira, Portugal 🇵🇹 in 4K Ultra HD | Drone Video 11 minutes" [level=4] [ref=e751]:
+                        - generic "Madeira, Portugal 🇵🇹 in 4K Ultra HD | Drone Video 11 minutes" [ref=e752]: Madeira, Portugal 🇵🇹 in 4K Ultra HD | Drone Video
+                      - generic [ref=e754]: Explore The World 4K
+                - button "Action menu" [ref=e758] [cursor=pointer]:
+                  - generic [ref=e761]:
+                    - img
+              - generic [ref=e762]:
+                - link "Nepal 4K - Scenic Views of a Himalayan Paradise | Cinematic Drone Footage 8 minutes, 50 seconds Explore The World 4K" [ref=e763] [cursor=pointer]:
+                  - /url: /watch?v=hjvwsHhFGg0&list=RDIFMtueTmqVo&index=22&pp=8AUB
+                  - generic [ref=e764]:
+                    - link [ref=e768]:
+                      - /url: /watch?v=hjvwsHhFGg0&list=RDIFMtueTmqVo&index=22&pp=8AUB
+                    - generic [ref=e770]:
+                      - heading "Nepal 4K - Scenic Views of a Himalayan Paradise | Cinematic Drone Footage 8 minutes, 50 seconds" [level=4] [ref=e771]:
+                        - generic "Nepal 4K - Scenic Views of a Himalayan Paradise | Cinematic Drone Footage 8 minutes, 50 seconds" [ref=e772]: Nepal 4K - Scenic Views of a Himalayan Paradise | Cinematic Drone Footage
+                      - generic [ref=e774]: Explore The World 4K
+                - button "Action menu" [ref=e778] [cursor=pointer]:
+                  - generic [ref=e781]:
+                    - img
+              - generic [ref=e782]:
+                - link "5.1 Atmos Surround Sound Test - Dolby Orchestra Music 4K HDR 2 minutes, 28 seconds 5.1 Test & Clips" [ref=e783] [cursor=pointer]:
+                  - /url: /watch?v=yH3hwy27MLU&list=RDIFMtueTmqVo&index=23&pp=8AUB
+                  - generic [ref=e784]:
+                    - link [ref=e788]:
+                      - /url: /watch?v=yH3hwy27MLU&list=RDIFMtueTmqVo&index=23&pp=8AUB
+                    - generic [ref=e790]:
+                      - heading "5.1 Atmos Surround Sound Test - Dolby Orchestra Music 4K HDR 2 minutes, 28 seconds" [level=4] [ref=e791]:
+                        - generic "5.1 Atmos Surround Sound Test - Dolby Orchestra Music 4K HDR 2 minutes, 28 seconds" [ref=e792]: 5.1 Atmos Surround Sound Test - Dolby Orchestra Music 4K HDR
+                      - generic [ref=e794]: 5.1 Test & Clips
+                - button "Action menu" [ref=e798] [cursor=pointer]:
+                  - generic [ref=e801]:
+                    - img
+              - generic [ref=e802]:
+                - link "Lucky Ali - O Sanam | Farmhouse Frames | Unplugged 2025 3 minutes, 47 seconds Lucky Ali and Farmhouse Music" [ref=e803] [cursor=pointer]:
+                  - /url: /watch?v=6bmDbIk8zUc&list=RDIFMtueTmqVo&index=24&pp=8AUB0gcJCdkKAYcqIYzv
+                  - generic [ref=e804]:
+                    - link [ref=e808]:
+                      - /url: /watch?v=6bmDbIk8zUc&list=RDIFMtueTmqVo&index=24&pp=8AUB0gcJCdkKAYcqIYzv
+                    - generic [ref=e810]:
+                      - heading "Lucky Ali - O Sanam | Farmhouse Frames | Unplugged 2025 3 minutes, 47 seconds" [level=4] [ref=e811]:
+                        - generic "Lucky Ali - O Sanam | Farmhouse Frames | Unplugged 2025 3 minutes, 47 seconds" [ref=e812]: Lucky Ali - O Sanam | Farmhouse Frames | Unplugged 2025
+                      - generic [ref=e814]: Lucky Ali and Farmhouse Music
+                - button "Action menu" [ref=e818] [cursor=pointer]:
+                  - generic [ref=e821]:
+                    - img
+              - generic [ref=e822]:
+                - link "Amazing Earth 🌍 Best of Dolby Vision 12K HDR 120 fps (4K/8K TV) 10 minutes, 11 seconds 12K VIDEO ULTRA HD" [ref=e823] [cursor=pointer]:
+                  - /url: /watch?v=ZA3Da95GCfA&list=RDIFMtueTmqVo&index=25&pp=8AUB
+                  - generic [ref=e824]:
+                    - link [ref=e828]:
+                      - /url: /watch?v=ZA3Da95GCfA&list=RDIFMtueTmqVo&index=25&pp=8AUB
+                    - generic [ref=e830]:
+                      - heading "Amazing Earth 🌍 Best of Dolby Vision 12K HDR 120 fps (4K/8K TV) 10 minutes, 11 seconds" [level=4] [ref=e831]:
+                        - generic "Amazing Earth 🌍 Best of Dolby Vision 12K HDR 120 fps (4K/8K TV) 10 minutes, 11 seconds" [ref=e832]: Amazing Earth 🌍 Best of Dolby Vision 12K HDR 120 fps (4K/8K TV)
+                      - generic [ref=e834]: 12K VIDEO ULTRA HD
+                - button "Action menu" [ref=e838] [cursor=pointer]:
+                  - generic [ref=e841]:
+                    - img
+          - generic [ref=e846]:
+            - generic [ref=e848] [cursor=pointer]:
+              - link [ref=e849]:
+                - /url: /watch?v=CrIzscDUaZo
+                - generic [ref=e856]: 26:08
+              - generic [ref=e858]:
+                - generic [ref=e859]:
+                  - heading "8k HDR Best Mix 2022 Dolby Vision 26 minutes" [level=3] [ref=e860]:
+                    - link "8k HDR Best Mix 2022 Dolby Vision 26 minutes" [ref=e861]:
+                      - /url: /watch?v=CrIzscDUaZo
+                      - text: 8k HDR Best Mix 2022 Dolby Vision
+                  - generic [ref=e863]:
+                    - generic [ref=e865]: Eugene Belsky HDR
+                    - generic [ref=e866]:
+                      - generic [ref=e867]: 1.6M views
+                      - generic [ref=e868]: •
+                      - generic [ref=e869]: 3 years ago
+                - button "More actions" [ref=e872]:
+                  - generic [ref=e876]:
+                    - img
+            - generic [ref=e881] [cursor=pointer]:
+              - link [ref=e882]:
+                - /url: /watch?v=MorjCQf-YoA&list=RDMorjCQf-YoA&start_radio=1&pp=oAcB
+                - generic [ref=e888]:
+                  - generic [ref=e891]:
+                    - img
+                  - generic [ref=e892]: 36:37
+              - generic [ref=e894]:
+                - generic [ref=e895]:
+                  - heading "100 Natural Wonders of the World [Amazing Places 4K] 36 minutes" [level=3] [ref=e896]:
+                    - link "100 Natural Wonders of the World [Amazing Places 4K] 36 minutes" [ref=e897]:
+                      - /url: /watch?v=MorjCQf-YoA&list=RDMorjCQf-YoA&start_radio=1&pp=oAcB
+                      - text: 100 Natural Wonders of the World [Amazing Places 4K]
+                  - generic [ref=e899]:
+                    - generic [ref=e901]:
+                      - text: Amazing Places on Our Planet
+                      - img [ref=e904]:
+                        - generic [ref=e906]:
+                          - img
+                    - generic [ref=e907]:
+                      - generic [ref=e908]: 6.3M views
+                      - generic [ref=e909]: •
+                      - generic [ref=e910]: 4 years ago
+                - button "More actions" [ref=e913]:
+                  - generic [ref=e917]:
+                    - img
+            - generic [ref=e922] [cursor=pointer]:
+              - link [ref=e923]:
+                - /url: /watch?v=cdLvFIRhlJ0
+                - generic [ref=e930]: 41:24
+              - generic [ref=e932]:
+                - generic [ref=e933]:
+                  - 'heading "US–Iran War: The Real Root Cause 41 minutes" [level=3] [ref=e934]':
+                    - 'link "US–Iran War: The Real Root Cause 41 minutes" [ref=e935]':
+                      - /url: /watch?v=cdLvFIRhlJ0
+                      - text: "US–Iran War: The Real Root Cause"
+                  - generic [ref=e937]:
+                    - generic [ref=e939]:
+                      - text: Nitish Rajput
+                      - img [ref=e942]:
+                        - generic [ref=e944]:
+                          - img
+                    - generic [ref=e945]:
+                      - generic [ref=e946]: 898K views
+                      - generic [ref=e947]: •
+                      - generic [ref=e948]: 7 hours ago
+                    - generic [ref=e953]: New
+                - button "More actions" [ref=e956]:
+                  - generic [ref=e960]:
+                    - img
+            - generic [ref=e965] [cursor=pointer]:
+              - link [ref=e966]:
+                - /url: /watch?v=jSx-lFOVaZw
+                - generic [ref=e973]: 28:47
+              - generic [ref=e975]:
+                - generic [ref=e976]:
+                  - heading "Parque Nacional do Iguaçu | Parques do Brasil 28 minutes" [level=3] [ref=e977]:
+                    - link "Parque Nacional do Iguaçu | Parques do Brasil 28 minutes" [ref=e978]:
+                      - /url: /watch?v=jSx-lFOVaZw
+                      - text: Parque Nacional do Iguaçu | Parques do Brasil
+                  - generic [ref=e980]:
+                    - generic [ref=e982]: TV Brasil
+                    - generic [ref=e983]:
+                      - generic [ref=e984]: 1.8M views
+                      - generic [ref=e985]: •
+                      - generic [ref=e986]: 5 years ago
+                - button "More actions" [ref=e989]:
+                  - generic [ref=e993]:
+                    - img
+            - generic [ref=e998] [cursor=pointer]:
+              - link [ref=e999]:
+                - /url: /watch?v=GtpZig5t-90
+                - generic [ref=e1006]: 15:02
+              - generic [ref=e1008]:
+                - generic [ref=e1009]:
+                  - heading "This Place in New Zealand Doesn’t Feel Real 🇳🇿 (4K) 15 minutes" [level=3] [ref=e1010]:
+                    - link "This Place in New Zealand Doesn’t Feel Real 🇳🇿 (4K) 15 minutes" [ref=e1011]:
+                      - /url: /watch?v=GtpZig5t-90
+                      - text: This Place in New Zealand Doesn’t Feel Real 🇳🇿 (4K)
+                  - generic [ref=e1013]:
+                    - generic [ref=e1015]: Quiet Miles with Atif 4K
+                    - generic [ref=e1016]:
+                      - generic [ref=e1017]: 1.4K views
+                      - generic [ref=e1018]: •
+                      - generic [ref=e1019]: 2 weeks ago
+                - button "More actions" [ref=e1022]:
+                  - generic [ref=e1026]:
+                    - img
+            - generic [ref=e1031] [cursor=pointer]:
+              - link [ref=e1032]:
+                - /url: /watch?v=y9n6HkftavM&list=RDy9n6HkftavM&start_radio=1&rv=y9n6HkftavM
+                - generic [ref=e1042]:
+                  - generic [ref=e1045]:
+                    - img
+                  - generic [ref=e1046]: Mix
+              - generic [ref=e1049]:
+                - heading "Mix - Color Burst HDR Dolby Vision™ 12K 60FPS" [level=3] [ref=e1050]:
+                  - link "Mix - Color Burst HDR Dolby Vision™ 12K 60FPS" [ref=e1051]:
+                    - /url: /watch?v=y9n6HkftavM&list=RDy9n6HkftavM&start_radio=1&rv=y9n6HkftavM
+                - generic [ref=e1055]: Jennifer Athena Galatis and more
+            - generic [ref=e1057] [cursor=pointer]:
+              - link [ref=e1058]:
+                - /url: /watch?v=aUOf2anD2n8
+                - generic [ref=e1065]: 23:45
+              - generic [ref=e1067]:
+                - generic [ref=e1068]:
+                  - heading "Is Japan Quietly Taking Over India? 23 minutes" [level=3] [ref=e1069]:
+                    - link "Is Japan Quietly Taking Over India? 23 minutes" [ref=e1070]:
+                      - /url: /watch?v=aUOf2anD2n8
+                      - text: Is Japan Quietly Taking Over India?
+                  - generic [ref=e1072]:
+                    - generic [ref=e1074]:
+                      - text: Gaurav Thakur
+                      - img [ref=e1077]:
+                        - generic [ref=e1079]:
+                          - img
+                    - generic [ref=e1080]:
+                      - generic [ref=e1081]: 100K views
+                      - generic [ref=e1082]: •
+                      - generic [ref=e1083]: 5 hours ago
+                    - generic [ref=e1088]: New
+                - button "More actions" [ref=e1091]:
+                  - generic [ref=e1095]:
+                    - img
+            - generic [ref=e1100] [cursor=pointer]:
+              - link [ref=e1101]:
+                - /url: /watch?v=XFmA8qCpcK4
+                - generic [ref=e1108]: 6:42
+              - generic [ref=e1110]:
+                - generic [ref=e1111]:
+                  - heading "MV Kong 2024 4K Scene Pack Part 1 6 minutes, 42 seconds" [level=3] [ref=e1112]:
+                    - link "MV Kong 2024 4K Scene Pack Part 1 6 minutes, 42 seconds" [ref=e1113]:
+                      - /url: /watch?v=XFmA8qCpcK4
+                      - text: MV Kong 2024 4K Scene Pack Part 1
+                  - generic [ref=e1115]:
+                    - generic [ref=e1117]: Universo Godzilla
+                    - generic [ref=e1118]:
+                      - generic [ref=e1119]: 1M views
+                      - generic [ref=e1120]: •
+                      - generic [ref=e1121]: 11 days ago
+                - button "More actions" [ref=e1124]:
+                  - generic [ref=e1128]:
+                    - img
+            - generic [ref=e1133] [cursor=pointer]:
+              - link [ref=e1134]:
+                - /url: /watch?v=TED3hNb3mWg
+                - generic [ref=e1141]: 36:35
+              - generic [ref=e1143]:
+                - generic [ref=e1144]:
+                  - heading "Iran war Update | Iran shot down F-15 & A10 Warthog | USS Tripoli & USS Wasp Amphibious Assault Ship 36 minutes" [level=3] [ref=e1145]:
+                    - link "Iran war Update | Iran shot down F-15 & A10 Warthog | USS Tripoli & USS Wasp Amphibious Assault Ship 36 minutes" [ref=e1146]:
+                      - /url: /watch?v=TED3hNb3mWg
+                      - text: Iran war Update | Iran shot down F-15 & A10 Warthog | USS Tripoli & USS Wasp Amphibious Assault Ship
+                  - generic [ref=e1148]:
+                    - generic [ref=e1150]:
+                      - text: Khan GS Research Centre
+                      - img [ref=e1153]:
+                        - generic [ref=e1155]:
+                          - img
+                    - generic [ref=e1156]:
+                      - generic [ref=e1157]: 1.6M views
+                      - generic [ref=e1158]: •
+                      - generic [ref=e1159]: 6 hours ago
+                    - generic [ref=e1160]:
+                      - generic [ref=e1164]: New
+                      - generic [ref=e1167]:
+                        - generic [ref=e1170]:
+                          - img
+                        - generic [ref=e1171]: Auto-dubbed
+                - button "More actions" [ref=e1174]:
+                  - generic [ref=e1178]:
+                    - img
+            - generic [ref=e1183] [cursor=pointer]:
+              - link [ref=e1184]:
+                - /url: /watch?v=amdOdzmAbSk&list=RDamdOdzmAbSk&start_radio=1&pp=oAcB
+                - generic [ref=e1190]:
+                  - generic [ref=e1193]:
+                    - img
+                  - generic [ref=e1194]: 2:32
+              - generic [ref=e1196]:
+                - generic [ref=e1197]:
+                  - heading "Ishq Jalakar - Karvaan - 8K Video | Dhurandhar | Ranveer Singh, Shashwat Sachdev, Shahzad Ali 2 minutes, 32 seconds" [level=3] [ref=e1198]:
+                    - link "Ishq Jalakar - Karvaan - 8K Video | Dhurandhar | Ranveer Singh, Shashwat Sachdev, Shahzad Ali 2 minutes, 32 seconds" [ref=e1199]:
+                      - /url: /watch?v=amdOdzmAbSk&list=RDamdOdzmAbSk&start_radio=1&pp=oAcB
+                      - text: Ishq Jalakar - Karvaan - 8K Video | Dhurandhar | Ranveer Singh, Shashwat Sachdev, Shahzad Ali
+                  - generic [ref=e1201]:
+                    - generic [ref=e1203]:
+                      - text: Saregama Music
+                      - img [ref=e1206]:
+                        - generic [ref=e1208]:
+                          - img
+                    - generic [ref=e1209]:
+                      - generic [ref=e1210]: 4.6M views
+                      - generic [ref=e1211]: •
+                      - generic [ref=e1212]: 2 weeks ago
+                - button "More actions" [ref=e1215]:
+                  - generic [ref=e1219]:
+                    - img
+            - generic [ref=e1224] [cursor=pointer]:
+              - link [ref=e1225]:
+                - /url: /watch?v=8V1ZatIkh1Y&list=RD8V1ZatIkh1Y&start_radio=1&pp=oAcB
+                - generic [ref=e1231]:
+                  - generic [ref=e1234]:
+                    - img
+                  - generic [ref=e1235]: 18:36
+              - generic [ref=e1237]:
+                - generic [ref=e1238]:
+                  - 'heading "Landscapes of Senja: Nature Sceneries from Norway''s Senja Island with Relaxing Music (4K UHD Video) 18 minutes" [level=3] [ref=e1239]':
+                    - 'link "Landscapes of Senja: Nature Sceneries from Norway''s Senja Island with Relaxing Music (4K UHD Video) 18 minutes" [ref=e1240]':
+                      - /url: /watch?v=8V1ZatIkh1Y&list=RD8V1ZatIkh1Y&start_radio=1&pp=oAcB
+                      - text: "Landscapes of Senja: Nature Sceneries from Norway's Senja Island with Relaxing Music (4K UHD Video)"
+                  - generic [ref=e1242]:
+                    - generic [ref=e1244]: Relaxation Channel - OneSmallPlanet
+                    - generic [ref=e1245]:
+                      - generic [ref=e1246]: 674K views
+                      - generic [ref=e1247]: •
+                      - generic [ref=e1248]: 4 years ago
+                - button "More actions" [ref=e1251]:
+                  - generic [ref=e1255]:
+                    - img
+            - generic [ref=e1260] [cursor=pointer]:
+              - link [ref=e1261]:
+                - /url: /watch?v=BJG8qMBveHw
+                - generic [ref=e1268]: 15:20
+              - generic [ref=e1270]:
+                - generic [ref=e1271]:
+                  - heading "San Francisco 12K HDR 60fps Dolby Vision™ | Cinematic Video 15 minutes" [level=3] [ref=e1272]:
+                    - link "San Francisco 12K HDR 60fps Dolby Vision™ | Cinematic Video 15 minutes" [ref=e1273]:
+                      - /url: /watch?v=BJG8qMBveHw
+                      - text: San Francisco 12K HDR 60fps Dolby Vision™ | Cinematic Video
+                  - generic [ref=e1275]:
+                    - generic [ref=e1277]:
+                      - text: 8K Paradise
+                      - img [ref=e1280]:
+                        - generic [ref=e1282]:
+                          - img
+                    - generic [ref=e1283]:
+                      - generic [ref=e1284]: 28K views
+                      - generic [ref=e1285]: •
+                      - generic [ref=e1286]: 3 years ago
+                - button "More actions" [ref=e1289]:
+                  - generic [ref=e1293]:
+                    - img
+            - generic [ref=e1298] [cursor=pointer]:
+              - link [ref=e1299]:
+                - /url: /watch?v=U1CImYRSruo
+                - generic [ref=e1306]: 17:10
+              - generic [ref=e1308]:
+                - generic [ref=e1309]:
+                  - heading "Why Rekha Gupta is most HATED CM? | 1 Year Later... 17 minutes" [level=3] [ref=e1310]:
+                    - link "Why Rekha Gupta is most HATED CM? | 1 Year Later... 17 minutes" [ref=e1311]:
+                      - /url: /watch?v=U1CImYRSruo
+                      - text: Why Rekha Gupta is most HATED CM? | 1 Year Later...
+                  - generic [ref=e1313]:
+                    - generic [ref=e1315]:
+                      - text: Open Letter
+                      - img [ref=e1318]:
+                        - generic [ref=e1320]:
+                          - img
+                    - generic [ref=e1321]:
+                      - generic [ref=e1322]: 286K views
+                      - generic [ref=e1323]: •
+                      - generic [ref=e1324]: 12 hours ago
+                    - generic [ref=e1329]: New
+                - button "More actions" [ref=e1332]:
+                  - generic [ref=e1336]:
+                    - img
+            - generic [ref=e1341] [cursor=pointer]:
+              - link [ref=e1342]:
+                - /url: /watch?v=sBN1E0VmP1M
+                - generic [ref=e1349]: 5:43
+              - generic [ref=e1351]:
+                - generic [ref=e1352]:
+                  - heading "The Desolation of Smaug |4K-HDR| The Hobbit and The Dragon ● Part 1 of 3 ● (2013) 5 minutes, 43 seconds" [level=3] [ref=e1353]:
+                    - link "The Desolation of Smaug |4K-HDR| The Hobbit and The Dragon ● Part 1 of 3 ● (2013) 5 minutes, 43 seconds" [ref=e1354]:
+                      - /url: /watch?v=sBN1E0VmP1M
+                      - text: The Desolation of Smaug |4K-HDR| The Hobbit and The Dragon ● Part 1 of 3 ● (2013)
+                  - generic [ref=e1356]:
+                    - generic [ref=e1358]: 4K Archives
+                    - generic [ref=e1359]:
+                      - generic [ref=e1360]: 6.4M views
+                      - generic [ref=e1361]: •
+                      - generic [ref=e1362]: 4 years ago
+                - button "More actions" [ref=e1365]:
+                  - generic [ref=e1369]:
+                    - img
+            - generic [ref=e1374] [cursor=pointer]:
+              - link [ref=e1375]:
+                - /url: /watch?v=C7QMr8Dt-JU
+                - generic [ref=e1382]: 21:34
+              - generic [ref=e1384]:
+                - generic [ref=e1385]:
+                  - heading "America is being ridiculed, Iran has shot down fighter jets. 21 minutes" [level=3] [ref=e1386]:
+                    - link "America is being ridiculed, Iran has shot down fighter jets. 21 minutes" [ref=e1387]:
+                      - /url: /watch?v=C7QMr8Dt-JU
+                      - text: America is being ridiculed, Iran has shot down fighter jets.
+                  - generic [ref=e1389]:
+                    - generic [ref=e1391]:
+                      - text: Ravish Kumar Official
+                      - img [ref=e1394]:
+                        - generic [ref=e1396]:
+                          - img
+                    - generic [ref=e1397]:
+                      - generic [ref=e1398]: 1.6M views
+                      - generic [ref=e1399]: •
+                      - generic [ref=e1400]: 9 hours ago
+                    - generic [ref=e1405]: New
+                - button "More actions" [ref=e1408]:
+                  - generic [ref=e1412]:
+                    - img
+            - generic [ref=e1417] [cursor=pointer]:
+              - link [ref=e1418]:
+                - /url: /watch?v=H75aa0Bau8Q&list=RDH75aa0Bau8Q&start_radio=1&pp=oAcB
+                - generic [ref=e1424]:
+                  - generic [ref=e1427]:
+                    - img
+                  - generic [ref=e1428]: 15:43
+              - generic [ref=e1430]:
+                - generic [ref=e1431]:
+                  - heading "Quiet Mind, Clear Thoughts — Indian Flute Music for Deep Focus & Studying 15 minutes" [level=3] [ref=e1432]:
+                    - link "Quiet Mind, Clear Thoughts — Indian Flute Music for Deep Focus & Studying 15 minutes" [ref=e1433]:
+                      - /url: /watch?v=H75aa0Bau8Q&list=RDH75aa0Bau8Q&start_radio=1&pp=oAcB
+                      - text: Quiet Mind, Clear Thoughts — Indian Flute Music for Deep Focus & Studying
+                  - generic [ref=e1435]:
+                    - generic [ref=e1437]: Moksha Soundscapes
+                    - generic [ref=e1438]:
+                      - generic [ref=e1439]: 210K views
+                      - generic [ref=e1440]: •
+                      - generic [ref=e1441]: 2 weeks ago
+                - button "More actions" [ref=e1444]:
+                  - generic [ref=e1448]:
+                    - img
+            - generic [ref=e1453] [cursor=pointer]:
+              - link [ref=e1454]:
+                - /url: /watch?v=gig9-jO7YL4&pp=0gcJCdkKAYcqIYzv
+                - generic [ref=e1461]: 25:40
+              - generic [ref=e1463]:
+                - generic [ref=e1464]:
+                  - heading "Most Amazing 100 Places on The Earth 4K 25 minutes" [level=3] [ref=e1465]:
+                    - link "Most Amazing 100 Places on The Earth 4K 25 minutes" [ref=e1466]:
+                      - /url: /watch?v=gig9-jO7YL4&pp=0gcJCdkKAYcqIYzv
+                      - text: Most Amazing 100 Places on The Earth 4K
+                  - generic [ref=e1468]:
+                    - generic [ref=e1470]: PRIMAL EARTH
+                    - generic [ref=e1471]:
+                      - generic [ref=e1472]: 5.1M views
+                      - generic [ref=e1473]: •
+                      - generic [ref=e1474]: 4 years ago
+                - button "More actions" [ref=e1477]:
+                  - generic [ref=e1481]:
+                    - img
+            - generic [ref=e1486] [cursor=pointer]:
+              - link [ref=e1487]:
+                - /url: /watch?v=5gfHI958n8s
+                - generic [ref=e1494]: 9:41
+              - generic [ref=e1496]:
+                - generic [ref=e1497]:
+                  - 'heading "IRAN: GAURAV ARYA ROASTED BY ARNAB | TRUMP 🤡 RAGHAV CHADHA 😂 GAS CYLINDER 9 minutes, 41 seconds" [level=3] [ref=e1498]':
+                    - 'link "IRAN: GAURAV ARYA ROASTED BY ARNAB | TRUMP 🤡 RAGHAV CHADHA 😂 GAS CYLINDER 9 minutes, 41 seconds" [ref=e1499]':
+                      - /url: /watch?v=5gfHI958n8s
+                      - text: "IRAN: GAURAV ARYA ROASTED BY ARNAB | TRUMP 🤡 RAGHAV CHADHA 😂 GAS CYLINDER"
+                  - generic [ref=e1501]:
+                    - generic [ref=e1503]:
+                      - text: Being Honest
+                      - img [ref=e1506]:
+                        - generic [ref=e1508]:
+                          - img
+                    - generic [ref=e1509]:
+                      - generic [ref=e1510]: 273K views
+                      - generic [ref=e1511]: •
+                      - generic [ref=e1512]: 5 hours ago
+                    - generic [ref=e1517]: New
+                - button "More actions" [ref=e1520]:
+                  - generic [ref=e1524]:
+                    - img
+            - generic [ref=e1529] [cursor=pointer]:
+              - link [ref=e1530]:
+                - /url: /watch?v=Ej_kZi6qX9w
+                - generic [ref=e1537]: 2:45
+              - generic [ref=e1539]:
+                - generic [ref=e1540]:
+                  - 'heading "4K IMAX HDR ▪︎ Avatar: Fire and Ash (2025) 🎞 Created in Video Enhance Studio AI™ 2 minutes, 45 seconds" [level=3] [ref=e1541]':
+                    - 'link "4K IMAX HDR ▪︎ Avatar: Fire and Ash (2025) 🎞 Created in Video Enhance Studio AI™ 2 minutes, 45 seconds" [ref=e1542]':
+                      - /url: /watch?v=Ej_kZi6qX9w
+                      - text: "4K IMAX HDR ▪︎ Avatar: Fire and Ash (2025) 🎞 Created in Video Enhance Studio AI™"
+                  - generic [ref=e1544]:
+                    - generic [ref=e1546]: HDR-X
+                    - generic [ref=e1547]:
+                      - generic [ref=e1548]: 2.5M views
+                      - generic [ref=e1549]: •
+                      - generic [ref=e1550]: 7 months ago
+                - button "More actions" [ref=e1553]:
+                  - generic [ref=e1557]:
+                    - img
+            - generic [ref=e1562] [cursor=pointer]:
+              - link [ref=e1563]:
+                - /url: /watch?v=-0y_JwvGIfc&list=RD-0y_JwvGIfc&start_radio=1&pp=oAcB
+                - generic [ref=e1569]:
+                  - generic [ref=e1572]:
+                    - img
+                  - generic [ref=e1573]: 29:13
+              - generic [ref=e1575]:
+                - generic [ref=e1576]:
+                  - heading "Amazing Jellyfish Aquarium in 4K HDR - Soothing & Relaxing Music - Great for Oled HDR TV's 29 minutes" [level=3] [ref=e1577]:
+                    - link "Amazing Jellyfish Aquarium in 4K HDR - Soothing & Relaxing Music - Great for Oled HDR TV's 29 minutes" [ref=e1578]:
+                      - /url: /watch?v=-0y_JwvGIfc&list=RD-0y_JwvGIfc&start_radio=1&pp=oAcB
+                      - text: Amazing Jellyfish Aquarium in 4K HDR - Soothing & Relaxing Music - Great for Oled HDR TV's
+                  - generic [ref=e1580]:
+                    - generic [ref=e1582]:
+                      - text: Balu - Relaxing Nature in 4K
+                      - img [ref=e1585]:
+                        - generic [ref=e1587]:
+                          - img
+                    - generic [ref=e1588]:
+                      - generic [ref=e1589]: 3.4M views
+                      - generic [ref=e1590]: •
+                      - generic [ref=e1591]: 6 years ago
+                - button "More actions" [ref=e1594]:
+                  - generic [ref=e1598]:
+                    - img
+  - generic [ref=e1629]: Join this channel and unlock members-only perks
