@@ -106,6 +106,26 @@ def remove_bulb(ctx, ip):
         click.echo(f"Bulb {ip} not found in config")
 
 
+@cli.command("prune-bulbs")
+@click.pass_context
+def prune_bulbs(ctx):
+    """Remove stale or duplicate bulbs from config."""
+    config = ctx.obj["config"]
+    controller = ctx.obj["controller"]
+
+    if not config.bulbs:
+        click.echo("No bulbs configured.")
+        return
+
+    stale_ips = run_async(ctx, controller.find_stale_bulbs([bulb.ip for bulb in config.bulbs]))
+    if not stale_ips:
+        click.echo("No stale bulbs found.")
+        return
+
+    removed = config.remove_bulbs(stale_ips)
+    click.echo(f"Removed {removed} stale bulb(s): {', '.join(stale_ips)}")
+
+
 @cli.command("list-bulbs")
 @click.pass_context
 def list_bulbs(ctx):

@@ -35,6 +35,7 @@ class WizLightGUI:
 
         self._brightness_debounce_id = None
         self._temp_debounce_id = None
+        self._screen_sync_settings_save_id = None
         self._screen_sync_reconfigure_id = None
         self._screen_sync_debug_id = None
         self._pending_tasks: list[Future] = []
@@ -84,6 +85,9 @@ class WizLightGUI:
         bulb_btn_frame.pack(fill=tk.X)
 
         ttk.Button(bulb_btn_frame, text="Discover", command=self._discover_bulbs).pack(
+            side=tk.LEFT, padx=2
+        )
+        ttk.Button(bulb_btn_frame, text="Remove Stale", command=self._remove_stale_bulbs).pack(
             side=tk.LEFT, padx=2
         )
         ttk.Button(bulb_btn_frame, text="Refresh", command=self._update_bulb_list).pack(
@@ -276,7 +280,7 @@ class WizLightGUI:
             to=60,
             width=6,
             textvariable=self.screen_fps_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         )
         self.fps_spinbox.pack(side=tk.LEFT, padx=(0, 10))
         self.fps_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
@@ -288,7 +292,7 @@ class WizLightGUI:
             to=30,
             width=6,
             textvariable=self.screen_min_fps_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         )
         self.min_fps_spinbox.pack(side=tk.LEFT, padx=(0, 10))
         self.min_fps_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
@@ -300,7 +304,7 @@ class WizLightGUI:
             to=255,
             width=6,
             textvariable=self.screen_min_brightness_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         )
         self.min_brightness_spinbox.pack(side=tk.LEFT)
         self.min_brightness_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
@@ -337,7 +341,7 @@ class WizLightGUI:
             self.screen_sync_settings_frame,
             text="Ignore black bars / letterboxing",
             variable=self.screen_ignore_letterbox_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(anchor=tk.W, pady=(4, 4))
 
         advanced_row = ttk.Frame(self.screen_sync_settings_frame)
@@ -357,20 +361,20 @@ class WizLightGUI:
             advanced_row,
             text="Adaptive FPS",
             variable=self.screen_adaptive_fps_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Checkbutton(
             advanced_row,
             text="Predictive",
             variable=self.screen_predictive_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(side=tk.LEFT)
 
         ttk.Checkbutton(
             self.screen_sync_settings_frame,
             text="Use GPU capture when available",
             variable=self.screen_use_gpu_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(anchor=tk.W, pady=(2, 4))
 
         ttk.Label(
@@ -426,14 +430,32 @@ class WizLightGUI:
 
     def _on_screen_smoothing_change(self, _):
         self._refresh_screen_sync_value_labels()
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_screen_boost_change(self, _):
         self._refresh_screen_sync_value_labels()
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_screen_sync_setting_change(self, _=None):
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
+
+    def _queue_screen_sync_settings_save(self, _=None):
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
+        self._screen_sync_settings_save_id = self.root.after(180, self._save_screen_sync_settings)
+
+    def _current_clap_config(self) -> ClapConfig:
+        clap = self.config.clap
+        return ClapConfig(
+            threshold=clap.threshold,
+            rms_threshold=clap.rms_threshold,
+            min_peak_to_rms=clap.min_peak_to_rms,
+            adaptive_multiplier=clap.adaptive_multiplier,
+            max_duration=clap.max_duration,
+            cooldown=clap.cooldown,
+            double_clap=clap.double_clap,
+            double_clap_window=clap.double_clap_window,
+        )
 
     def _refresh_screen_sync_layout_controls(self):
         for child in self.screen_layout_frame.winfo_children():
@@ -486,6 +508,10 @@ class WizLightGUI:
         return layout
 
     def _save_screen_sync_settings(self):
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
+            self._screen_sync_settings_save_id = None
+
         settings = self.config.screen_sync
         if self.screen_min_fps_var.get() > self.screen_fps_var.get():
             self.screen_min_fps_var.set(self.screen_fps_var.get())
@@ -607,6 +633,28 @@ class WizLightGUI:
                 self.root.after(0, lambda: self._set_status(f"Discovery failed: {exc}"))
 
         self._run_async(discover())
+
+    def _remove_stale_bulbs(self):
+        configured_ips = self._get_bulb_ips()
+        if not configured_ips:
+            self._set_status("No bulbs configured")
+            return
+
+        self._set_status("Checking for stale bulbs...")
+
+        async def prune():
+            try:
+                stale_ips = await self.controller.find_stale_bulbs(configured_ips)
+                removed = self.config.remove_bulbs(stale_ips)
+                self.root.after(0, self._update_bulb_list)
+                if removed:
+                    self.root.after(0, lambda: self._set_status(f"Removed {removed} stale bulb(s)"))
+                else:
+                    self.root.after(0, lambda: self._set_status("No stale bulbs found"))
+            except Exception as exc:
+                self.root.after(0, lambda: self._set_status(f"Stale check failed: {exc}"))
+
+        self._run_async(prune())
 
     def _turn_on(self):
         ips = self._get_bulb_ips()
@@ -761,10 +809,14 @@ class WizLightGUI:
             self._stop_screen_sync()
 
     def _toggle_clap_detection(self):
+        self.config.clap.enabled = bool(self.clap_var.get())
+        self.config.save()
         if self.clap_var.get():
             ips = self._get_bulb_ips()
             if not ips:
                 self.clap_var.set(False)
+                self.config.clap.enabled = False
+                self.config.save()
                 self._set_status("No bulbs configured")
                 return
 
@@ -774,15 +826,11 @@ class WizLightGUI:
 
             self.clap_detector = ClapDetector(
                 on_clap=on_clap,
-                config=ClapConfig(
-                    threshold=0.08,
-                    rms_threshold=0.015,
-                    double_clap=True,
-                    double_clap_window=0.6,
-                ),
+                config=self._current_clap_config(),
             )
             self.clap_detector.start()
-            self._set_status("Clap detection started")
+            mode = "double clap" if self.config.clap.double_clap else "single clap"
+            self._set_status(f"Clap detection started ({mode})")
         else:
             if self.clap_detector:
                 self.clap_detector.stop()
@@ -801,6 +849,8 @@ class WizLightGUI:
             self.root.after_cancel(self._brightness_debounce_id)
         if self._temp_debounce_id:
             self.root.after_cancel(self._temp_debounce_id)
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
         if self._screen_sync_reconfigure_id:
             self.root.after_cancel(self._screen_sync_reconfigure_id)
         if self._screen_sync_debug_id:

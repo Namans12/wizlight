@@ -86,9 +86,28 @@ class ClapConfig:
     """Clap detection feature configuration."""
 
     enabled: bool = False
-    threshold: float = 0.5
-    cooldown: float = 1.0
+    threshold: float = 0.055
+    rms_threshold: float = 0.01
+    min_peak_to_rms: float = 2.7
+    adaptive_multiplier: float = 5.0
+    max_duration: float = 0.2
+    cooldown: float = 0.45
     double_clap: bool = True
+    double_clap_window: float = 0.85
+
+    def __post_init__(self) -> None:
+        self.enabled = bool(self.enabled)
+        self.threshold = float(self.threshold)
+        if self.threshold > 0.2:
+            self.threshold = 0.055
+        self.threshold = max(0.01, min(0.2, self.threshold))
+        self.rms_threshold = max(0.002, min(0.05, float(self.rms_threshold)))
+        self.min_peak_to_rms = max(1.2, min(6.0, float(self.min_peak_to_rms)))
+        self.adaptive_multiplier = max(1.5, min(12.0, float(self.adaptive_multiplier)))
+        self.max_duration = max(0.05, min(0.4, float(self.max_duration)))
+        self.cooldown = max(0.1, min(2.0, float(self.cooldown)))
+        self.double_clap = bool(self.double_clap)
+        self.double_clap_window = max(0.25, min(1.5, float(self.double_clap_window)))
 
 
 @dataclass
@@ -150,8 +169,21 @@ class Config:
     def add_bulb(self, ip: str, name: str, mac: Optional[str] = None) -> None:
         """Add a bulb to configuration."""
 
-        self.bulbs = [bulb for bulb in self.bulbs if bulb.ip != ip]
-        self.bulbs.append(BulbConfig(ip=ip, name=name, mac=mac))
+        preserved_region = self.screen_sync.bulb_layout.get(ip)
+        normalized_mac = mac.lower() if mac else None
+        stale_ips = {ip}
+        if normalized_mac:
+            for bulb in self.bulbs:
+                if bulb.mac and bulb.mac.lower() == normalized_mac:
+                    stale_ips.add(bulb.ip)
+                    preserved_region = preserved_region or self.screen_sync.bulb_layout.get(bulb.ip)
+
+        self.bulbs = [bulb for bulb in self.bulbs if bulb.ip not in stale_ips]
+        for stale_ip in stale_ips - {ip}:
+            self.screen_sync.bulb_layout.pop(stale_ip, None)
+        if preserved_region:
+            self.screen_sync.bulb_layout[ip] = preserved_region
+        self.bulbs.append(BulbConfig(ip=ip, name=name, mac=normalized_mac or mac))
         self.save()
 
     def remove_bulb(self, ip: str) -> bool:
@@ -164,3 +196,19 @@ class Config:
             self.save()
             return True
         return False
+
+    def remove_bulbs(self, ips: list[str]) -> int:
+        """Remove multiple bulbs from configuration and return the count removed."""
+
+        stale_ips = set(ips)
+        if not stale_ips:
+            return 0
+
+        original_len = len(self.bulbs)
+        self.bulbs = [bulb for bulb in self.bulbs if bulb.ip not in stale_ips]
+        for ip in stale_ips:
+            self.screen_sync.bulb_layout.pop(ip, None)
+        removed = original_len - len(self.bulbs)
+        if removed:
+            self.save()
+        return removed

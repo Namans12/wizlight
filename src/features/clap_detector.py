@@ -12,16 +12,16 @@ import sounddevice as sd
 @dataclass
 class ClapConfig:
     """Configuration for clap detection."""
-    threshold: float = 0.08  # Peak amplitude threshold (0-1)
-    rms_threshold: float = 0.015  # Minimum RMS energy for a clap block
-    min_peak_to_rms: float = 4.0  # Clap should be a short transient, not steady noise
-    adaptive_multiplier: float = 8.0  # Dynamic threshold factor over ambient noise floor
-    noise_floor_decay: float = 0.98  # Smoothing for ambient-noise tracking
+    threshold: float = 0.055  # Peak amplitude threshold (0-1)
+    rms_threshold: float = 0.01  # Minimum RMS energy for a clap block
+    min_peak_to_rms: float = 2.7  # Clap should be a short transient, not steady noise
+    adaptive_multiplier: float = 5.0  # Dynamic threshold factor over ambient noise floor
+    noise_floor_decay: float = 0.985  # Smoothing for ambient-noise tracking
     min_duration: float = 0.005  # Minimum clap duration in seconds
-    max_duration: float = 0.15  # Maximum clap duration in seconds
-    cooldown: float = 0.75  # Minimum time between triggered actions
+    max_duration: float = 0.2  # Maximum clap duration in seconds
+    cooldown: float = 0.45  # Minimum time between triggered actions
     double_clap: bool = True  # Require double clap to trigger
-    double_clap_window: float = 0.6  # Max time between double claps
+    double_clap_window: float = 0.85  # Max time between double claps
     sample_rate: int = 44100
     block_size: int = 512
     device_index: Optional[int] = None

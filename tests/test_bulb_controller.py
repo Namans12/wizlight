@@ -224,6 +224,51 @@ async def test_resolve_screen_sync_targets_skips_duplicates_and_unreachable(monk
 
 
 @pytest.mark.asyncio
+async def test_find_stale_bulbs_returns_unreachable_and_duplicate_entries(monkeypatch):
+    controller = BulbController()
+
+    states = {
+        "192.168.1.3": BulbState(
+            ip="192.168.1.3",
+            mac="aa:bb",
+            is_on=True,
+            brightness=128,
+            rgb=(1, 2, 3),
+            color_temp=None,
+        ),
+        "192.168.1.19": BulbState(
+            ip="192.168.1.19",
+            mac="aa:bb",
+            is_on=True,
+            brightness=128,
+            rgb=(1, 2, 3),
+            color_temp=None,
+        ),
+        "192.168.1.7": BulbState(
+            ip="192.168.1.7",
+            mac="cc:dd",
+            is_on=False,
+            brightness=None,
+            rgb=None,
+            color_temp=None,
+        ),
+    }
+
+    async def fake_resolve_target(ip):
+        if ip == "192.168.1.4":
+            raise TimeoutError("timed out")
+        return states[ip]
+
+    monkeypatch.setattr(controller, "_resolve_screen_sync_target", fake_resolve_target)
+
+    stale = await controller.find_stale_bulbs(
+        ["192.168.1.3", "192.168.1.19", "192.168.1.4", "192.168.1.7"]
+    )
+
+    assert stale == ["192.168.1.19", "192.168.1.4"]
+
+
+@pytest.mark.asyncio
 async def test_get_color_profile_times_out_slow_metadata_queries(monkeypatch):
     class FakeBulb:
         mac = "aa:bb"

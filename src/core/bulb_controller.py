@@ -188,6 +188,18 @@ class BulbController:
     async def resolve_screen_sync_targets(self, ips: list[str]) -> list[str]:
         """Return reachable, deduplicated bulbs for low-latency screen sync."""
 
+        resolved, _ = await self._classify_screen_sync_targets(ips)
+        return resolved
+
+    async def find_stale_bulbs(self, ips: list[str]) -> list[str]:
+        """Return unreachable or duplicate bulbs that should be pruned from config."""
+
+        _, stale = await self._classify_screen_sync_targets(ips)
+        return stale
+
+    async def _classify_screen_sync_targets(self, ips: list[str]) -> tuple[list[str], list[str]]:
+        """Split configured bulbs into reachable targets and stale entries."""
+
         unique_ips = list(dict.fromkeys(ips))
         results = await asyncio.gather(
             *(self._resolve_screen_sync_target(ip) for ip in unique_ips),
@@ -195,16 +207,19 @@ class BulbController:
         )
 
         resolved: list[str] = []
+        stale: list[str] = []
         seen_macs: set[str] = set()
         for ip, result in zip(unique_ips, results):
             if isinstance(result, Exception) or result is None:
+                stale.append(ip)
                 continue
             key = result.mac or result.ip or ip
             if key in seen_macs:
+                stale.append(ip)
                 continue
             seen_macs.add(key)
             resolved.append(ip)
-        return resolved
+        return resolved, stale
 
     async def _resolve_screen_sync_target(self, ip: str) -> Optional[BulbState]:
         """Return bulb state only when the target answers a real local WiZ request."""

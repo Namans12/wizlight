@@ -79,6 +79,7 @@ class WizLightModernGUI(AnimationMixin):
         self._pending_tasks: list[Future] = []
         self._brightness_debounce_id = None
         self._temp_debounce_id = None
+        self._screen_sync_settings_save_id = None
         self._screen_sync_reconfigure_id = None
         self._screen_sync_debug_id = None
         self._screen_layout_vars: dict[str, ctk.StringVar] = {}
@@ -182,9 +183,20 @@ class WizLightModernGUI(AnimationMixin):
 
         bulbs = ctk.CTkFrame(main)
         bulbs.pack(fill="x", pady=(0, 12))
-        ctk.CTkButton(bulbs, text="Discover", command=self._discover_bulbs, width=110).pack(
-            side="right", padx=12, pady=12
-        )
+        bulb_actions = ctk.CTkFrame(bulbs, fg_color="transparent")
+        bulb_actions.pack(side="right", padx=12, pady=12)
+        ctk.CTkButton(
+            bulb_actions,
+            text="Remove Stale",
+            command=self._remove_stale_bulbs,
+            width=120,
+        ).pack(side="right")
+        ctk.CTkButton(
+            bulb_actions,
+            text="Discover",
+            command=self._discover_bulbs,
+            width=110,
+        ).pack(side="right", padx=(0, 8))
         ctk.CTkLabel(bulbs, text="Configured Bulbs", font=("Segoe UI", 16, "bold")).pack(
             anchor="w", padx=12, pady=(12, 4)
         )
@@ -253,7 +265,7 @@ class WizLightModernGUI(AnimationMixin):
         self.mode_menu = ctk.CTkOptionMenu(
             settings,
             values=[mode.title() for mode in SCREEN_SYNC_MODES],
-            command=lambda _: self._save_screen_sync_settings(),
+            command=self._queue_screen_sync_settings_save,
         )
         self.mode_menu.pack(fill="x", padx=12, pady=(0, 8))
         self.mode_menu.set(self.config.screen_sync.mode.title())
@@ -261,7 +273,7 @@ class WizLightModernGUI(AnimationMixin):
         self.monitor_menu = ctk.CTkOptionMenu(
             settings,
             values=[str(option["label"]) for option in self._monitor_options],
-            command=lambda _: self._save_screen_sync_settings(),
+            command=self._queue_screen_sync_settings_save,
         )
         self.monitor_menu.pack(fill="x", padx=12, pady=(0, 8))
         selected_monitor = next(
@@ -334,7 +346,7 @@ class WizLightModernGUI(AnimationMixin):
             settings,
             values=[algorithm.title() for algorithm in COLOR_ALGORITHMS],
             variable=self.algorithm_value,
-            command=lambda _: self._save_screen_sync_settings(),
+            command=self._queue_screen_sync_settings_save,
         )
         self.algorithm_menu.pack(fill="x", padx=12, pady=(0, 8))
 
@@ -344,27 +356,27 @@ class WizLightModernGUI(AnimationMixin):
             advanced_flags,
             text="Adaptive FPS",
             variable=self.adaptive_fps_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(side="left", padx=(0, 8))
         ctk.CTkCheckBox(
             advanced_flags,
             text="Predictive",
             variable=self.predictive_smoothing_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(side="left")
 
         ctk.CTkCheckBox(
             settings,
             text="Use GPU capture when available",
             variable=self.use_gpu_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(anchor="w", padx=12, pady=(0, 8))
 
         ctk.CTkCheckBox(
             settings,
             text="Ignore black bars / letterboxing",
             variable=self.ignore_letterbox_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(anchor="w", padx=12, pady=(0, 8))
 
         ctk.CTkLabel(
@@ -455,6 +467,9 @@ class WizLightModernGUI(AnimationMixin):
         return layout
 
     def _save_screen_sync_settings(self):
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
+            self._screen_sync_settings_save_id = None
         settings = self.config.screen_sync
         settings.mode = self.mode_menu.get().strip().lower()
         settings.monitor = self._monitor_label_to_index.get(self.monitor_menu.get(), settings.monitor)
@@ -475,6 +490,24 @@ class WizLightModernGUI(AnimationMixin):
         if self.screen_sync and self.screen_sync.is_running:
             self._schedule_screen_sync_restart()
 
+    def _queue_screen_sync_settings_save(self, _=None):
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
+        self._screen_sync_settings_save_id = self.root.after(180, self._save_screen_sync_settings)
+
+    def _current_clap_config(self) -> ClapConfig:
+        clap = self.config.clap
+        return ClapConfig(
+            threshold=clap.threshold,
+            rms_threshold=clap.rms_threshold,
+            min_peak_to_rms=clap.min_peak_to_rms,
+            adaptive_multiplier=clap.adaptive_multiplier,
+            max_duration=clap.max_duration,
+            cooldown=clap.cooldown,
+            double_clap=clap.double_clap,
+            double_clap_window=clap.double_clap_window,
+        )
+
     def _schedule_screen_sync_restart(self):
         if self._screen_sync_reconfigure_id:
             self.root.after_cancel(self._screen_sync_reconfigure_id)
@@ -493,7 +526,7 @@ class WizLightModernGUI(AnimationMixin):
             self.min_fps_value.set(self.fps_value.get())
             self.min_fps_slider.set(self.min_fps_value.get())
             self.min_fps_label.configure(text=f"Min FPS: {self.min_fps_value.get()}")
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_min_fps_change(self, value):
         self.min_fps_value.set(int(float(value)))
@@ -501,25 +534,25 @@ class WizLightModernGUI(AnimationMixin):
             self.min_fps_value.set(self.fps_value.get())
             self.min_fps_slider.set(self.min_fps_value.get())
         self.min_fps_label.configure(text=f"Min FPS: {self.min_fps_value.get()}")
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_smoothing_change(self, value):
         self.smoothing_value.set(float(value))
         self.smoothing_label.configure(text=f"Smoothing: {self.smoothing_value.get():.2f}")
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_boost_change(self, value):
         self.boost_value.set(float(value))
         self.boost_label.configure(text=f"Color Boost: {self.boost_value.get():.2f}x")
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_min_brightness_change(self, value):
         self.min_brightness_value.set(int(float(value)))
         self.min_brightness_label.configure(text=f"Min Brightness: {self.min_brightness_value.get()}")
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_layout_change(self, _ip: str):
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _set_status(self, msg: str):
         self.status_label.configure(text=msg)
@@ -603,6 +636,28 @@ class WizLightModernGUI(AnimationMixin):
                 self.root.after(0, lambda: self._set_status(f"Error: {exc}"))
 
         self._run_async(discover())
+
+    def _remove_stale_bulbs(self):
+        configured_ips = self._get_bulb_ips()
+        if not configured_ips:
+            self._set_status("No bulbs configured")
+            return
+
+        self._set_status("Checking stale bulbs...")
+
+        async def prune():
+            try:
+                stale_ips = await self.controller.find_stale_bulbs(configured_ips)
+                removed = self.config.remove_bulbs(stale_ips)
+                self.root.after(0, self._update_bulb_status)
+                if removed:
+                    self.root.after(0, lambda: self._set_status(f"Removed {removed} stale bulb(s)"))
+                else:
+                    self.root.after(0, lambda: self._set_status("No stale bulbs found"))
+            except Exception as exc:
+                self.root.after(0, lambda: self._set_status(f"Stale check failed: {exc}"))
+
+        self._run_async(prune())
 
     def _turn_on(self):
         ips = self._get_bulb_ips()
@@ -766,10 +821,14 @@ class WizLightModernGUI(AnimationMixin):
             self._stop_screen_sync()
 
     def _toggle_clap_detection(self):
+        self.config.clap.enabled = bool(self.clap_switch.get())
+        self.config.save()
         if self.clap_switch.get():
             ips = self._get_bulb_ips()
             if not ips:
                 self.clap_switch.deselect()
+                self.config.clap.enabled = False
+                self.config.save()
                 self._set_status("No bulbs configured")
                 return
 
@@ -779,15 +838,11 @@ class WizLightModernGUI(AnimationMixin):
 
             self.clap_detector = ClapDetector(
                 on_clap=on_clap,
-                config=ClapConfig(
-                    threshold=0.08,
-                    rms_threshold=0.015,
-                    double_clap=True,
-                    double_clap_window=0.6,
-                ),
+                config=self._current_clap_config(),
             )
             self.clap_detector.start()
-            self._set_status("Clap detection ON")
+            mode = "double clap" if self.config.clap.double_clap else "single clap"
+            self._set_status(f"Clap detection ON ({mode})")
         else:
             if self.clap_detector:
                 self.clap_detector.stop()
@@ -895,6 +950,8 @@ class WizLightModernGUI(AnimationMixin):
             self.root.after_cancel(self._brightness_debounce_id)
         if self._temp_debounce_id:
             self.root.after_cancel(self._temp_debounce_id)
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
         if self._screen_sync_reconfigure_id:
             self.root.after_cancel(self._screen_sync_reconfigure_id)
         if self._screen_sync_debug_id:
