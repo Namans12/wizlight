@@ -1,6 +1,7 @@
 """Click-based CLI for WizLight."""
 
 import asyncio
+import gc
 
 import click
 
@@ -21,6 +22,7 @@ def _cleanup_runtime(controller: BulbController, runner: BackgroundAsyncLoop) ->
     except Exception:
         controller.close()
     finally:
+        gc.collect()
         runner.shutdown()
 
 

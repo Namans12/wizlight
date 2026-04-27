@@ -30,9 +30,12 @@ class MainActivity : FlutterActivity() {
                     smoothing = call.argument<Double>("smoothing") ?: 0.2,
                     sampleSize = call.argument<Int>("sampleSize") ?: 56,
                     colorBoost = call.argument<Double>("colorBoost") ?: 1.18,
+                    edgeWeight = call.argument<Double>("edgeWeight") ?: 1.5,
+                    colorAlgorithm = call.argument<String>("colorAlgorithm") ?: "auto",
                     minBrightness = call.argument<Int>("minBrightness") ?: 20,
                     minColorDelta = call.argument<Int>("minColorDelta") ?: 8,
                     adaptiveFps = call.argument<Boolean>("adaptiveFps") ?: true,
+                    predictiveSmoothing = call.argument<Boolean>("predictiveSmoothing") ?: true,
                     ignoreLetterbox = call.argument<Boolean>("ignoreLetterbox") ?: true,
                     result = result,
                 )
@@ -61,9 +64,12 @@ class MainActivity : FlutterActivity() {
         smoothing: Double,
         sampleSize: Int,
         colorBoost: Double,
+        edgeWeight: Double,
+        colorAlgorithm: String,
         minBrightness: Int,
         minColorDelta: Int,
         adaptiveFps: Boolean,
+        predictiveSmoothing: Boolean,
         ignoreLetterbox: Boolean,
         result: MethodChannel.Result,
     ) {
@@ -81,9 +87,12 @@ class MainActivity : FlutterActivity() {
             putExtra(ScreenCaptureService.EXTRA_SMOOTHING, smoothing)
             putExtra(ScreenCaptureService.EXTRA_SAMPLE_SIZE, sampleSize)
             putExtra(ScreenCaptureService.EXTRA_COLOR_BOOST, colorBoost)
+            putExtra(ScreenCaptureService.EXTRA_EDGE_WEIGHT, edgeWeight)
+            putExtra(ScreenCaptureService.EXTRA_COLOR_ALGORITHM, colorAlgorithm)
             putExtra(ScreenCaptureService.EXTRA_MIN_BRIGHTNESS, minBrightness)
             putExtra(ScreenCaptureService.EXTRA_MIN_COLOR_DELTA, minColorDelta)
             putExtra(ScreenCaptureService.EXTRA_ADAPTIVE_FPS, adaptiveFps)
+            putExtra(ScreenCaptureService.EXTRA_PREDICTIVE_SMOOTHING, predictiveSmoothing)
             putExtra(ScreenCaptureService.EXTRA_IGNORE_LETTERBOX, ignoreLetterbox)
         }
 

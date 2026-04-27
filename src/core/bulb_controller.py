@@ -504,17 +504,18 @@ class BulbController:
     async def close_async(self) -> None:
         """Close bulb transports on the event loop that created them."""
         bulbs = list(self._bulbs.values())
-        self._bulbs.clear()
-        self._color_profiles.clear()
-        self._gamut_mappers.clear()
-        self._calibration_tables.clear()
-        self._tone_tables.clear()
+        self.close()
 
         if bulbs:
             await asyncio.gather(
                 *(bulb.async_close() for bulb in bulbs),
                 return_exceptions=True,
             )
+            for bulb in bulbs:
+                try:
+                    bulb._async_close()
+                except Exception:
+                    pass
 
     def close(self) -> None:
         """Drop cached bulb instances when async cleanup is unavailable."""

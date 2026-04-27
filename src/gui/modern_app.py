@@ -1,5 +1,6 @@
 """Modern GUI for WizLight using CustomTkinter."""
 
+import gc
 from concurrent.futures import Future
 from typing import Optional
 
@@ -22,6 +23,7 @@ from ..features.screen_sync_v2 import OptimizedScreenSync, build_optimized_captu
 from .components.animations import AnimationMixin, animate_value, ease_out_cubic
 from .components.color_wheel import ColorWheelPicker
 from .components.dashboard import BulbDashboard, BulbInfo
+from .components.smooth_scrollable_frame import SmoothScrollableFrame
 from .components.tray import SystemTrayManager, is_tray_available
 
 
@@ -68,6 +70,11 @@ class ModernColorPicker(ctk.CTkToplevel):
 
 class WizLightModernGUI(AnimationMixin):
     """Modern GUI application for WizLight."""
+
+    @staticmethod
+    def _surface_color(widget) -> str | tuple[str, str]:
+        color = widget.cget("fg_color")
+        return color if color != "transparent" else ("gray92", "gray14")
 
     def __init__(self):
         AnimationMixin.__init__(self)
@@ -159,7 +166,10 @@ class WizLightModernGUI(AnimationMixin):
         self.status_label.pack(side="right", padx=12)
         
         # Controls view (scrollable)
-        self._controls_frame = ctk.CTkScrollableFrame(self._main_container)
+        self._controls_frame = SmoothScrollableFrame(
+            self._main_container,
+            fg_color=("gray92", "gray14"),
+        )
         self._controls_frame.pack(fill="both", expand=True)
         
         # Dashboard view (hidden initially)
@@ -183,7 +193,7 @@ class WizLightModernGUI(AnimationMixin):
 
         bulbs = ctk.CTkFrame(main)
         bulbs.pack(fill="x", pady=(0, 12))
-        bulb_actions = ctk.CTkFrame(bulbs, fg_color="transparent")
+        bulb_actions = ctk.CTkFrame(bulbs, fg_color=self._surface_color(bulbs))
         bulb_actions.pack(side="right", padx=12, pady=12)
         ctk.CTkButton(
             bulb_actions,
@@ -208,7 +218,7 @@ class WizLightModernGUI(AnimationMixin):
         ctk.CTkLabel(controls, text="Quick Controls", font=("Segoe UI", 16, "bold")).pack(
             anchor="w", padx=12, pady=(12, 8)
         )
-        button_row = ctk.CTkFrame(controls, fg_color="transparent")
+        button_row = ctk.CTkFrame(controls, fg_color=self._surface_color(controls))
         button_row.pack(fill="x", padx=12, pady=(0, 12))
         ctk.CTkButton(button_row, text="ON", command=self._turn_on, width=90).pack(side="left", padx=(0, 8))
         ctk.CTkButton(button_row, text="OFF", command=self._turn_off, width=90).pack(side="left", padx=(0, 8))
@@ -220,7 +230,7 @@ class WizLightModernGUI(AnimationMixin):
         self.brightness_slider.set(128)
         self.brightness_slider.pack(fill="x", padx=12, pady=(0, 12))
 
-        color_row = ctk.CTkFrame(controls, fg_color="transparent")
+        color_row = ctk.CTkFrame(controls, fg_color=self._surface_color(controls))
         color_row.pack(fill="x", padx=12, pady=(0, 8))
         self.color_preview = ctk.CTkFrame(color_row, width=42, height=42, corner_radius=10, fg_color="#ffffff")
         self.color_preview.pack(side="left", padx=(0, 10))
@@ -245,12 +255,12 @@ class WizLightModernGUI(AnimationMixin):
         ctk.CTkLabel(features, text="Features", font=("Segoe UI", 16, "bold")).pack(
             anchor="w", padx=12, pady=(12, 8)
         )
-        screen_row = ctk.CTkFrame(features, fg_color="transparent")
+        screen_row = ctk.CTkFrame(features, fg_color=self._surface_color(features))
         screen_row.pack(fill="x", padx=12, pady=(0, 8))
         ctk.CTkLabel(screen_row, text="Screen Sync").pack(side="left")
         self.screen_sync_switch = ctk.CTkSwitch(screen_row, text="", command=self._toggle_screen_sync)
         self.screen_sync_switch.pack(side="right")
-        clap_row = ctk.CTkFrame(features, fg_color="transparent")
+        clap_row = ctk.CTkFrame(features, fg_color=self._surface_color(features))
         clap_row.pack(fill="x", padx=12, pady=(0, 12))
         ctk.CTkLabel(clap_row, text="Clap Detection").pack(side="left")
         self.clap_switch = ctk.CTkSwitch(clap_row, text="", command=self._toggle_clap_detection)
@@ -350,7 +360,7 @@ class WizLightModernGUI(AnimationMixin):
         )
         self.algorithm_menu.pack(fill="x", padx=12, pady=(0, 8))
 
-        advanced_flags = ctk.CTkFrame(settings, fg_color="transparent")
+        advanced_flags = ctk.CTkFrame(settings, fg_color=self._surface_color(settings))
         advanced_flags.pack(fill="x", padx=12, pady=(0, 8))
         ctk.CTkCheckBox(
             advanced_flags,
@@ -384,7 +394,7 @@ class WizLightModernGUI(AnimationMixin):
             text="Bulb Layout (zone mode needs at least 2 assigned regions)",
             text_color="gray",
         ).pack(anchor="w", padx=12)
-        self.layout_frame = ctk.CTkFrame(settings, fg_color="transparent")
+        self.layout_frame = ctk.CTkFrame(settings, fg_color=self._surface_color(settings))
         self.layout_frame.pack(fill="x", padx=12, pady=(6, 12))
         self._refresh_screen_sync_layout_controls()
         self._build_screen_sync_debug(main)
@@ -396,7 +406,7 @@ class WizLightModernGUI(AnimationMixin):
             anchor="w", padx=12, pady=(12, 8)
         )
 
-        preview_row = ctk.CTkFrame(card, fg_color="transparent")
+        preview_row = ctk.CTkFrame(card, fg_color=self._surface_color(card))
         preview_row.pack(fill="x", padx=12, pady=(0, 6))
         ctk.CTkLabel(preview_row, text="Output", width=80, anchor="w").pack(side="left")
         self.screen_sync_debug_preview = ctk.CTkFrame(
@@ -440,7 +450,7 @@ class WizLightModernGUI(AnimationMixin):
             return
         values = [UNASSIGNED_REGION] + [region.title() for region in SCREEN_SYNC_REGIONS]
         for bulb in self.config.bulbs:
-            row = ctk.CTkFrame(self.layout_frame, fg_color="transparent")
+            row = ctk.CTkFrame(self.layout_frame, fg_color=self._surface_color(self.layout_frame))
             row.pack(fill="x", pady=2)
             ctk.CTkLabel(row, text=f"{bulb.name} ({bulb.ip})", anchor="w").pack(side="left")
             selected = self.config.screen_sync.bulb_layout.get(bulb.ip)
@@ -964,6 +974,7 @@ class WizLightModernGUI(AnimationMixin):
         try:
             self._async_runner.run(self.controller.close_async(), timeout=2.0)
         finally:
+            gc.collect()
             self._async_runner.shutdown()
             self.root.destroy()
 

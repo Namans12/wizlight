@@ -55,9 +55,12 @@ class ScreenCaptureService : Service() {
         const val EXTRA_SMOOTHING = "smoothing"
         const val EXTRA_SAMPLE_SIZE = "sampleSize"
         const val EXTRA_COLOR_BOOST = "colorBoost"
+        const val EXTRA_EDGE_WEIGHT = "edgeWeight"
+        const val EXTRA_COLOR_ALGORITHM = "colorAlgorithm"
         const val EXTRA_MIN_BRIGHTNESS = "minBrightness"
         const val EXTRA_MIN_COLOR_DELTA = "minColorDelta"
         const val EXTRA_ADAPTIVE_FPS = "adaptiveFps"
+        const val EXTRA_PREDICTIVE_SMOOTHING = "predictiveSmoothing"
         const val EXTRA_IGNORE_LETTERBOX = "ignoreLetterbox"
 
         private const val NOTIFICATION_ID = 1001
@@ -138,9 +141,12 @@ class ScreenCaptureService : Service() {
     private var sampleSize = 56
     private var smoothing = 0.2
     private var colorBoost = 1.18
+    private var colorAlgorithm = "auto"
     private var minBrightness = 20
     private var minColorDelta = 8
     private var edgeWeight = 1.5
+    private var predictiveSmoothing = true
+    private var predictionWeight = 0.3
 
     private var isRunning = false
     private var previousMotionSample: FloatArray? = null
@@ -157,6 +163,7 @@ class ScreenCaptureService : Service() {
     private val currentOutputColors = mutableMapOf<String, RgbColor>()
     private val lastSentColors = mutableMapOf<String, RgbColor>()
     private val lastTargetColors = mutableMapOf<String, RgbColor>()
+    private val predictionTargets = mutableMapOf<String, RgbColor>()
     private val wizBasis = arrayOf(
         doubleArrayOf(cos(0.0), sin(0.0)),
         doubleArrayOf(cos((2.0 * PI) / 3.0), sin((2.0 * PI) / 3.0)),
@@ -164,6 +171,14 @@ class ScreenCaptureService : Service() {
     )
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val mediaProjectionCallback =
+        object : MediaProjection.Callback() {
+            override fun onStop() {
+                stopCapture(stopProjection = false)
+                stopSelf()
+            }
+        }
+
     private val captureRunnable = object : Runnable {
         override fun run() {
             if (!isRunning) {
@@ -205,9 +220,12 @@ class ScreenCaptureService : Service() {
                 smoothing = intent.getDoubleExtra(EXTRA_SMOOTHING, 0.2).coerceIn(0.05, 0.85)
                 sampleSize = intent.getIntExtra(EXTRA_SAMPLE_SIZE, 56).coerceIn(24, 96)
                 colorBoost = intent.getDoubleExtra(EXTRA_COLOR_BOOST, 1.18).coerceIn(1.0, 1.8)
+                edgeWeight = intent.getDoubleExtra(EXTRA_EDGE_WEIGHT, 1.5).coerceIn(1.0, 2.5)
+                colorAlgorithm = normalizeAlgorithm(intent.getStringExtra(EXTRA_COLOR_ALGORITHM))
                 minBrightness = intent.getIntExtra(EXTRA_MIN_BRIGHTNESS, 20).coerceIn(0, 80)
                 minColorDelta = intent.getIntExtra(EXTRA_MIN_COLOR_DELTA, 8).coerceIn(2, 48)
                 adaptiveFps = intent.getBooleanExtra(EXTRA_ADAPTIVE_FPS, true)
+                predictiveSmoothing = intent.getBooleanExtra(EXTRA_PREDICTIVE_SMOOTHING, true)
                 ignoreLetterbox = intent.getBooleanExtra(EXTRA_IGNORE_LETTERBOX, true)
                 effectiveMode = resolveEffectiveMode(requestedMode, bulbTargets)
                 startCapture()
@@ -239,6 +257,7 @@ class ScreenCaptureService : Service() {
             mediaProjectionResultCode,
             projectionData,
         )
+        mediaProjection?.registerCallback(mediaProjectionCallback, mainHandler)
 
         imageReader = ImageReader.newInstance(
             screenWidth,
@@ -273,6 +292,7 @@ class ScreenCaptureService : Service() {
         currentOutputColors.clear()
         lastSentColors.clear()
         lastTargetColors.clear()
+        predictionTargets.clear()
 
         captureThread = HandlerThread("WizLightCaptureThread").also { it.start() }
         captureHandler = Handler(captureThread!!.looper)
@@ -302,10 +322,11 @@ class ScreenCaptureService : Service() {
 
             for ((ip, targetColor) in mappedBulbColors) {
                 val current = currentOutputColors[ip]
+                val predictedTarget = applyPredictiveTarget(ip, targetColor, motionScore)
                 val smoothed = if (current == null) {
-                    targetColor
+                    predictedTarget
                 } else {
-                    smoothColor(current, targetColor, smoothingFactor)
+                    smoothColor(current, predictedTarget, smoothingFactor)
                 }
                 currentOutputColors[ip] = smoothed
                 appliedColors[ip] = smoothed
@@ -322,6 +343,7 @@ class ScreenCaptureService : Service() {
             for (ip in staleIps) {
                 currentOutputColors.remove(ip)
                 lastSentColors.remove(ip)
+                predictionTargets.remove(ip)
             }
 
             framesProcessed += 1
@@ -488,7 +510,11 @@ class ScreenCaptureService : Service() {
     private fun extractTargetColors(source: ImageFrame, motionScore: Double): Map<String, RgbColor> {
         return if (effectiveMode == "single") {
             val sampled = sampleFrame(source, sampleSize)
-            val extracted = extractCinematicSingleColor(sampled)
+            val extracted = if (colorAlgorithm == "auto") {
+                extractCinematicSingleColor(sampled)
+            } else {
+                extractColor(sampled)
+            }
             val enhanced = enhanceColor(extracted)
             val held = applyCinematicPaletteHold(enhanced, previousSingleColor, motionScore)
             previousSingleColor = held
@@ -499,11 +525,158 @@ class ScreenCaptureService : Service() {
             for (region in bulbTargets.map { it.region }.toSet()) {
                 val regionFrame = cropRelativeRegion(source, region)
                 val sampled = sampleFrame(regionFrame, sampleSize)
-                val color = enhanceColor(extractBalancedAutoColor(sampled))
+                val color = enhanceColor(extractColor(sampled))
                 targets[region] = color
             }
             targets
         }
+    }
+
+    private fun normalizeAlgorithm(raw: String?): String {
+        return when (raw?.lowercase()) {
+            "auto", "weighted", "kmeans", "histogram" -> raw.lowercase()
+            else -> "auto"
+        }
+    }
+
+    private fun extractColor(sample: SampledFrame): RgbColor {
+        return when (colorAlgorithm) {
+            "weighted" -> extractWeightedColor(sample)
+            "histogram" -> extractHistogramColor(sample)
+            "kmeans" -> extractKMeansColor(sample)
+            else -> extractBalancedAutoColor(sample)
+        }
+    }
+
+    private fun extractHistogramColor(sample: SampledFrame): RgbColor {
+        val binSize = 32
+        val bins = HashMap<Int, Int>()
+        val sums = HashMap<Int, IntArray>()
+        for (pixel in sample.pixels) {
+            val r = Color.red(pixel)
+            val g = Color.green(pixel)
+            val b = Color.blue(pixel)
+            val qr = (r / binSize).coerceIn(0, 7)
+            val qg = (g / binSize).coerceIn(0, 7)
+            val qb = (b / binSize).coerceIn(0, 7)
+            val key = (qr shl 6) or (qg shl 3) or qb
+            bins[key] = (bins[key] ?: 0) + 1
+            val sum = sums.getOrPut(key) { intArrayOf(0, 0, 0) }
+            sum[0] += r
+            sum[1] += g
+            sum[2] += b
+        }
+
+        val dominant = bins.maxByOrNull { it.value }?.key
+        if (dominant == null) {
+            return extractWeightedColor(sample)
+        }
+        val total = max(1, bins[dominant] ?: 1)
+        val sum = sums[dominant] ?: intArrayOf(128, 128, 128)
+        return RgbColor(sum[0] / total, sum[1] / total, sum[2] / total)
+    }
+
+    private fun extractKMeansColor(sample: SampledFrame): RgbColor {
+        if (sample.pixels.isEmpty()) {
+            return RgbColor(128, 128, 128)
+        }
+
+        val clusterCount = 3
+        val centroids = Array(clusterCount) { index ->
+            val pixel = sample.pixels[(index * sample.pixels.size / clusterCount).coerceIn(0, sample.pixels.size - 1)]
+            floatArrayOf(Color.red(pixel).toFloat(), Color.green(pixel).toFloat(), Color.blue(pixel).toFloat())
+        }
+
+        repeat(5) {
+            val sums = Array(clusterCount) { floatArrayOf(0f, 0f, 0f) }
+            val counts = IntArray(clusterCount)
+
+            for (pixel in sample.pixels) {
+                val r = Color.red(pixel).toFloat()
+                val g = Color.green(pixel).toFloat()
+                val b = Color.blue(pixel).toFloat()
+
+                var bestIndex = 0
+                var bestDistance = Double.MAX_VALUE
+                for (index in centroids.indices) {
+                    val dr = r - centroids[index][0]
+                    val dg = g - centroids[index][1]
+                    val db = b - centroids[index][2]
+                    val distance = (dr * dr + dg * dg + db * db).toDouble()
+                    if (distance < bestDistance) {
+                        bestDistance = distance
+                        bestIndex = index
+                    }
+                }
+
+                sums[bestIndex][0] += r
+                sums[bestIndex][1] += g
+                sums[bestIndex][2] += b
+                counts[bestIndex] += 1
+            }
+
+            for (index in centroids.indices) {
+                if (counts[index] == 0) {
+                    continue
+                }
+                centroids[index][0] = sums[index][0] / counts[index]
+                centroids[index][1] = sums[index][1] / counts[index]
+                centroids[index][2] = sums[index][2] / counts[index]
+            }
+        }
+
+        var dominantIndex = 0
+        var dominantScore = -1.0
+        for (index in centroids.indices) {
+            val saturation = rgbSaturation(
+                centroids[index][0].roundToInt(),
+                centroids[index][1].roundToInt(),
+                centroids[index][2].roundToInt(),
+            )
+            val luma = rgbLuma(
+                centroids[index][0].roundToInt(),
+                centroids[index][1].roundToInt(),
+                centroids[index][2].roundToInt(),
+            )
+            val score = saturation * 0.75 + luma * 0.25
+            if (score > dominantScore) {
+                dominantScore = score
+                dominantIndex = index
+            }
+        }
+
+        val chosen = centroids[dominantIndex]
+        return RgbColor(
+            chosen[0].roundToInt().coerceIn(0, 255),
+            chosen[1].roundToInt().coerceIn(0, 255),
+            chosen[2].roundToInt().coerceIn(0, 255),
+        )
+    }
+
+    private fun applyPredictiveTarget(ip: String, target: RgbColor, motionScore: Double): RgbColor {
+        if (!predictiveSmoothing) {
+            predictionTargets[ip] = target
+            return target
+        }
+
+        val previous = predictionTargets[ip]
+        predictionTargets[ip] = target
+        if (previous == null) {
+            return target
+        }
+
+        val normalizedMotion = min(1.0, motionScore / 0.05)
+        val weight = predictionWeight * (1.0 - normalizedMotion)
+        if (weight <= 0.0) {
+            return target
+        }
+
+        val predicted = RgbColor(
+            (target.r + (target.r - previous.r) * weight).roundToInt().coerceIn(0, 255),
+            (target.g + (target.g - previous.g) * weight).roundToInt().coerceIn(0, 255),
+            (target.b + (target.b - previous.b) * weight).roundToInt().coerceIn(0, 255),
+        )
+        return blendColors(target, predicted, weight)
     }
 
     private fun cropRelativeRegion(source: ImageFrame, region: String): ImageFrame {
@@ -1036,6 +1209,8 @@ class ScreenCaptureService : Service() {
             "sendRateHz" to sendRateHz,
             "motionScore" to lastMotionScore,
             "smoothing" to smoothingFactor,
+            "colorAlgorithm" to colorAlgorithm,
+            "predictiveSmoothing" to predictiveSmoothing,
             "updatesSent" to updatesSent,
             "targetColors" to lastTargetColors.mapValues { listOf(it.value.r, it.value.g, it.value.b) },
             "outputColors" to outputColors.mapValues { listOf(it.value.r, it.value.g, it.value.b) },
@@ -1047,7 +1222,7 @@ class ScreenCaptureService : Service() {
         }
     }
 
-    private fun stopCapture() {
+    private fun stopCapture(stopProjection: Boolean = true) {
         isRunning = false
         captureHandler?.removeCallbacksAndMessages(null)
         captureThread?.quitSafely()
@@ -1060,8 +1235,12 @@ class ScreenCaptureService : Service() {
         imageReader?.close()
         imageReader = null
 
-        mediaProjection?.stop()
+        val projection = mediaProjection
         mediaProjection = null
+        if (projection != null && stopProjection) {
+            projection.unregisterCallback(mediaProjectionCallback)
+            projection.stop()
+        }
 
         udpSocket?.close()
         udpSocket = null

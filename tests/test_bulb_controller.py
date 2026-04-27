@@ -77,6 +77,31 @@ async def test_close_async_closes_cached_bulbs():
 
 
 @pytest.mark.asyncio
+async def test_close_async_force_clears_transport_after_async_close_failure():
+    class FakeBulb:
+        def __init__(self) -> None:
+            self.transport = object()
+            self.push_cancel = None
+            self.push_running = True
+
+        async def async_close(self):
+            raise RuntimeError("close failed")
+
+        def _async_close(self):
+            self.push_running = False
+            self.transport = None
+
+    controller = BulbController()
+    bulb = FakeBulb()
+    controller._bulbs["192.168.1.10"] = bulb
+
+    await controller.close_async()
+
+    assert bulb.transport is None
+    assert bulb.push_running is False
+
+
+@pytest.mark.asyncio
 async def test_set_rgb_exact_uses_direct_rgbw_payload():
     class FakeBulb:
         def __init__(self) -> None:

@@ -1,5 +1,6 @@
 """Tkinter-based GUI for WizLight."""
 
+import gc
 import tkinter as tk
 from concurrent.futures import Future
 from tkinter import colorchooser, ttk
@@ -863,6 +864,7 @@ class WizLightGUI:
         try:
             self._async_runner.run(self.controller.close_async(), timeout=2.0)
         finally:
+            gc.collect()
             self._async_runner.shutdown()
             self.root.destroy()
 
