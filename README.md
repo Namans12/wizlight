@@ -161,4 +161,4 @@ WizLight uses [fauxmo](https://github.com/n8henrie/fauxmo) to create virtual WeM
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](LICENSE)
