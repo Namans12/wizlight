@@ -1,5 +1,6 @@
 """Tkinter-based GUI for WizLight."""
 
+import gc
 import tkinter as tk
 from concurrent.futures import Future
 from tkinter import colorchooser, ttk
@@ -7,17 +8,16 @@ from typing import Optional
 
 from ..core.async_runtime import BackgroundAsyncLoop
 from ..core.bulb_controller import BulbController, PRESETS, apply_preset
-from ..core.config import Config, SCREEN_SYNC_MODES, SCREEN_SYNC_REGIONS
+from ..core.config import COLOR_ALGORITHMS, Config, SCREEN_SYNC_MODES, SCREEN_SYNC_REGIONS
 from ..features.clap_detector import ClapConfig, ClapDetector
 from ..features.screen_sync import (
-    CaptureConfig,
-    ScreenSync,
     average_colors,
     build_bulb_color_map,
     effective_screen_sync_mode,
     list_monitors,
     resolve_active_regions,
 )
+from ..features.screen_sync_v2 import OptimizedScreenSync, build_optimized_capture_config
 
 
 UNASSIGNED_REGION = "(Unassigned)"
@@ -30,13 +30,15 @@ class WizLightGUI:
         self.config = Config.load()
         self.controller = BulbController()
 
-        self.screen_sync: Optional[ScreenSync] = None
+        self.screen_sync: Optional[OptimizedScreenSync] = None
         self.clap_detector: Optional[ClapDetector] = None
         self._async_runner = BackgroundAsyncLoop()
 
         self._brightness_debounce_id = None
         self._temp_debounce_id = None
+        self._screen_sync_settings_save_id = None
         self._screen_sync_reconfigure_id = None
+        self._screen_sync_debug_id = None
         self._pending_tasks: list[Future] = []
         self._screen_layout_vars: dict[str, tk.StringVar] = {}
 
@@ -84,6 +86,9 @@ class WizLightGUI:
         bulb_btn_frame.pack(fill=tk.X)
 
         ttk.Button(bulb_btn_frame, text="Discover", command=self._discover_bulbs).pack(
+            side=tk.LEFT, padx=2
+        )
+        ttk.Button(bulb_btn_frame, text="Remove Stale", command=self._remove_stale_bulbs).pack(
             side=tk.LEFT, padx=2
         )
         ttk.Button(bulb_btn_frame, text="Refresh", command=self._update_bulb_list).pack(
@@ -206,6 +211,8 @@ class WizLightGUI:
             command=self._toggle_clap_detection,
         ).pack(anchor=tk.W, pady=(12, 0))
 
+        self._build_screen_sync_debug(features_frame)
+
         self.status_var = tk.StringVar(value="Ready")
         status_bar = ttk.Label(main_frame, textvariable=self.status_var, relief=tk.SUNKEN)
         status_bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -220,11 +227,16 @@ class WizLightGUI:
         self.screen_sync_settings_frame.pack(fill=tk.X)
 
         self.screen_monitor_var = tk.StringVar()
-        self.screen_fps_var = tk.IntVar(value=settings.fps)
+        self.screen_fps_var = tk.IntVar(value=settings.max_fps)
+        self.screen_min_fps_var = tk.IntVar(value=settings.min_fps)
         self.screen_smoothing_var = tk.DoubleVar(value=settings.smoothing)
         self.screen_boost_var = tk.DoubleVar(value=settings.color_boost)
         self.screen_min_brightness_var = tk.IntVar(value=settings.min_brightness)
         self.screen_ignore_letterbox_var = tk.BooleanVar(value=settings.ignore_letterbox)
+        self.screen_algorithm_var = tk.StringVar(value=settings.color_algorithm.title())
+        self.screen_use_gpu_var = tk.BooleanVar(value=settings.use_gpu)
+        self.screen_adaptive_fps_var = tk.BooleanVar(value=settings.adaptive_fps)
+        self.screen_predictive_var = tk.BooleanVar(value=settings.predictive_smoothing)
 
         monitor_label = next(
             (
@@ -262,17 +274,29 @@ class WizLightGUI:
 
         tuning_row = ttk.Frame(self.screen_sync_settings_frame)
         tuning_row.pack(fill=tk.X, pady=2)
-        ttk.Label(tuning_row, text="FPS:", width=14).pack(side=tk.LEFT)
+        ttk.Label(tuning_row, text="Max FPS:", width=14).pack(side=tk.LEFT)
         self.fps_spinbox = tk.Spinbox(
+            tuning_row,
+            from_=4,
+            to=60,
+            width=6,
+            textvariable=self.screen_fps_var,
+            command=self._queue_screen_sync_settings_save,
+        )
+        self.fps_spinbox.pack(side=tk.LEFT, padx=(0, 10))
+        self.fps_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
+
+        ttk.Label(tuning_row, text="Min FPS:", width=14).pack(side=tk.LEFT)
+        self.min_fps_spinbox = tk.Spinbox(
             tuning_row,
             from_=4,
             to=30,
             width=6,
-            textvariable=self.screen_fps_var,
-            command=self._save_screen_sync_settings,
+            textvariable=self.screen_min_fps_var,
+            command=self._queue_screen_sync_settings_save,
         )
-        self.fps_spinbox.pack(side=tk.LEFT, padx=(0, 10))
-        self.fps_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
+        self.min_fps_spinbox.pack(side=tk.LEFT, padx=(0, 10))
+        self.min_fps_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
 
         ttk.Label(tuning_row, text="Min Brightness:", width=14).pack(side=tk.LEFT)
         self.min_brightness_spinbox = tk.Spinbox(
@@ -281,7 +305,7 @@ class WizLightGUI:
             to=255,
             width=6,
             textvariable=self.screen_min_brightness_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         )
         self.min_brightness_spinbox.pack(side=tk.LEFT)
         self.min_brightness_spinbox.bind("<FocusOut>", self._on_screen_sync_setting_change)
@@ -318,8 +342,41 @@ class WizLightGUI:
             self.screen_sync_settings_frame,
             text="Ignore black bars / letterboxing",
             variable=self.screen_ignore_letterbox_var,
-            command=self._save_screen_sync_settings,
+            command=self._queue_screen_sync_settings_save,
         ).pack(anchor=tk.W, pady=(4, 4))
+
+        advanced_row = ttk.Frame(self.screen_sync_settings_frame)
+        advanced_row.pack(fill=tk.X, pady=2)
+        ttk.Label(advanced_row, text="Algorithm:", width=14).pack(side=tk.LEFT)
+        self.algorithm_combo = ttk.Combobox(
+            advanced_row,
+            values=[algorithm.title() for algorithm in COLOR_ALGORITHMS],
+            state="readonly",
+            width=14,
+            textvariable=self.screen_algorithm_var,
+        )
+        self.algorithm_combo.pack(side=tk.LEFT, padx=(0, 10))
+        self.algorithm_combo.bind("<<ComboboxSelected>>", self._on_screen_sync_setting_change)
+
+        ttk.Checkbutton(
+            advanced_row,
+            text="Adaptive FPS",
+            variable=self.screen_adaptive_fps_var,
+            command=self._queue_screen_sync_settings_save,
+        ).pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Checkbutton(
+            advanced_row,
+            text="Predictive",
+            variable=self.screen_predictive_var,
+            command=self._queue_screen_sync_settings_save,
+        ).pack(side=tk.LEFT)
+
+        ttk.Checkbutton(
+            self.screen_sync_settings_frame,
+            text="Use GPU capture when available",
+            variable=self.screen_use_gpu_var,
+            command=self._queue_screen_sync_settings_save,
+        ).pack(anchor=tk.W, pady=(2, 4))
 
         ttk.Label(
             self.screen_sync_settings_frame,
@@ -332,20 +389,74 @@ class WizLightGUI:
         self._refresh_screen_sync_value_labels()
         self._refresh_screen_sync_layout_controls()
 
+    def _build_screen_sync_debug(self, parent):
+        frame = ttk.LabelFrame(parent, text="Sync Debug", padding="8")
+        frame.pack(fill=tk.X, pady=(12, 0))
+
+        preview_row = ttk.Frame(frame)
+        preview_row.pack(fill=tk.X, pady=(0, 4))
+        ttk.Label(preview_row, text="Output:", width=14).pack(side=tk.LEFT)
+        self.screen_sync_debug_preview = tk.Canvas(
+            preview_row,
+            width=22,
+            height=22,
+            bg="#000000",
+            relief=tk.SUNKEN,
+            highlightthickness=0,
+        )
+        self.screen_sync_debug_preview.pack(side=tk.LEFT, padx=(0, 8))
+
+        self.screen_sync_debug_runtime_var = tk.StringVar(value="Runtime: idle")
+        self.screen_sync_debug_target_var = tk.StringVar(value="Target: -")
+        self.screen_sync_debug_output_var = tk.StringVar(value="Output: -")
+        self.screen_sync_debug_perf_var = tk.StringVar(value="FPS: -")
+        self.screen_sync_debug_cadence_var = tk.StringVar(value="Cadence: -")
+        self.screen_sync_debug_motion_var = tk.StringVar(value="Motion: -")
+        self.screen_sync_debug_error_var = tk.StringVar(value="")
+
+        for variable in (
+            self.screen_sync_debug_runtime_var,
+            self.screen_sync_debug_target_var,
+            self.screen_sync_debug_output_var,
+            self.screen_sync_debug_perf_var,
+            self.screen_sync_debug_cadence_var,
+            self.screen_sync_debug_motion_var,
+            self.screen_sync_debug_error_var,
+        ):
+            ttk.Label(frame, textvariable=variable).pack(anchor=tk.W)
+
     def _refresh_screen_sync_value_labels(self):
         self.smoothing_value_label.config(text=f"{self.screen_smoothing_var.get():.2f}")
         self.boost_value_label.config(text=f"{self.screen_boost_var.get():.2f}x")
 
     def _on_screen_smoothing_change(self, _):
         self._refresh_screen_sync_value_labels()
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_screen_boost_change(self, _):
         self._refresh_screen_sync_value_labels()
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
 
     def _on_screen_sync_setting_change(self, _=None):
-        self._save_screen_sync_settings()
+        self._queue_screen_sync_settings_save()
+
+    def _queue_screen_sync_settings_save(self, _=None):
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
+        self._screen_sync_settings_save_id = self.root.after(180, self._save_screen_sync_settings)
+
+    def _current_clap_config(self) -> ClapConfig:
+        clap = self.config.clap
+        return ClapConfig(
+            threshold=clap.threshold,
+            rms_threshold=clap.rms_threshold,
+            min_peak_to_rms=clap.min_peak_to_rms,
+            adaptive_multiplier=clap.adaptive_multiplier,
+            max_duration=clap.max_duration,
+            cooldown=clap.cooldown,
+            double_clap=clap.double_clap,
+            double_clap_window=clap.double_clap_window,
+        )
 
     def _refresh_screen_sync_layout_controls(self):
         for child in self.screen_layout_frame.winfo_children():
@@ -398,17 +509,29 @@ class WizLightGUI:
         return layout
 
     def _save_screen_sync_settings(self):
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
+            self._screen_sync_settings_save_id = None
+
         settings = self.config.screen_sync
+        if self.screen_min_fps_var.get() > self.screen_fps_var.get():
+            self.screen_min_fps_var.set(self.screen_fps_var.get())
         settings.mode = self.mode_combo.get().strip().lower() or "single"
         settings.monitor = self._monitor_label_to_index.get(
             self.screen_monitor_var.get(),
             settings.monitor,
         )
         settings.fps = int(self.screen_fps_var.get())
+        settings.max_fps = int(self.screen_fps_var.get())
+        settings.min_fps = int(self.screen_min_fps_var.get())
         settings.smoothing = float(self.screen_smoothing_var.get())
         settings.color_boost = float(self.screen_boost_var.get())
         settings.min_brightness = int(self.screen_min_brightness_var.get())
         settings.ignore_letterbox = bool(self.screen_ignore_letterbox_var.get())
+        settings.color_algorithm = self.screen_algorithm_var.get().strip().lower() or "auto"
+        settings.use_gpu = bool(self.screen_use_gpu_var.get())
+        settings.adaptive_fps = bool(self.screen_adaptive_fps_var.get())
+        settings.predictive_smoothing = bool(self.screen_predictive_var.get())
         settings.bulb_layout = self._current_screen_layout()
         settings.__post_init__()
         self.config.save()
@@ -429,6 +552,63 @@ class WizLightGUI:
 
     def _set_status(self, msg: str):
         self.status_var.set(msg)
+
+    def _format_debug_color(self, color: Optional[tuple[int, int, int]]) -> str:
+        if color is None:
+            return "-"
+        return f"RGB({color[0]}, {color[1]}, {color[2]})"
+
+    def _refresh_screen_sync_debug(self):
+        self._screen_sync_debug_id = None
+        if not self.screen_sync or not self.screen_sync.is_running:
+            self.screen_sync_debug_runtime_var.set("Runtime: idle")
+            self.screen_sync_debug_target_var.set("Target: -")
+            self.screen_sync_debug_output_var.set("Output: -")
+            self.screen_sync_debug_perf_var.set("FPS: -")
+            self.screen_sync_debug_cadence_var.set("Cadence: -")
+            self.screen_sync_debug_motion_var.set("Motion: -")
+            self.screen_sync_debug_error_var.set("")
+            self.screen_sync_debug_preview.config(bg="#000000")
+            return
+
+        snapshot = self.screen_sync.debug_snapshot
+        target_colors = snapshot["target_colors"]
+        current_colors = snapshot["current_colors"]
+        target = target_colors.get("all") or (
+            average_colors(tuple(target_colors.values())) if target_colors else None
+        )
+        output = current_colors.get("all") or (
+            average_colors(tuple(current_colors.values())) if current_colors else None
+        )
+
+        self.screen_sync_debug_runtime_var.set(
+            f"Runtime: {snapshot['capture_method'].upper()} | {snapshot['mode']}"
+        )
+        self.screen_sync_debug_target_var.set(f"Target: {self._format_debug_color(target)}")
+        self.screen_sync_debug_output_var.set(f"Output: {self._format_debug_color(output)}")
+        self.screen_sync_debug_perf_var.set(
+            f"FPS: {snapshot['current_fps']} | frame {snapshot['average_frame_time_ms']:.1f} ms"
+        )
+        if snapshot["send_rate_hz"] > 0:
+            self.screen_sync_debug_cadence_var.set(
+                f"Cadence: {snapshot['send_rate_hz']:.1f} Hz | {snapshot['send_interval_ms']:.0f} ms | sends {snapshot['updates_sent']}"
+            )
+        else:
+            self.screen_sync_debug_cadence_var.set(
+                f"Cadence: warming up | sends {snapshot['updates_sent']}"
+            )
+        self.screen_sync_debug_motion_var.set(
+            f"Motion: {snapshot['motion_score']:.3f} | smooth {snapshot['smoothing_factor']:.2f} | predict {snapshot['prediction_weight']:.2f}"
+        )
+        self.screen_sync_debug_error_var.set(
+            f"Error: {snapshot['last_error']}" if snapshot["last_error"] else ""
+        )
+        if output is not None:
+            self.screen_sync_debug_preview.config(
+                bg=f"#{output[0]:02x}{output[1]:02x}{output[2]:02x}"
+            )
+
+        self._screen_sync_debug_id = self.root.after(350, self._refresh_screen_sync_debug)
 
     def _update_bulb_list(self):
         self.bulb_listbox.delete(0, tk.END)
@@ -454,6 +634,28 @@ class WizLightGUI:
                 self.root.after(0, lambda: self._set_status(f"Discovery failed: {exc}"))
 
         self._run_async(discover())
+
+    def _remove_stale_bulbs(self):
+        configured_ips = self._get_bulb_ips()
+        if not configured_ips:
+            self._set_status("No bulbs configured")
+            return
+
+        self._set_status("Checking for stale bulbs...")
+
+        async def prune():
+            try:
+                stale_ips = await self.controller.find_stale_bulbs(configured_ips)
+                removed = self.config.remove_bulbs(stale_ips)
+                self.root.after(0, self._update_bulb_list)
+                if removed:
+                    self.root.after(0, lambda: self._set_status(f"Removed {removed} stale bulb(s)"))
+                else:
+                    self.root.after(0, lambda: self._set_status("No stale bulbs found"))
+            except Exception as exc:
+                self.root.after(0, lambda: self._set_status(f"Stale check failed: {exc}"))
+
+        self._run_async(prune())
 
     def _turn_on(self):
         ips = self._get_bulb_ips()
@@ -519,12 +721,21 @@ class WizLightGUI:
             self._set_status(f"Preset: {preset_name}")
 
     def _start_screen_sync(self):
-        ips = self._get_bulb_ips()
+        configured_ips = self._get_bulb_ips()
+        try:
+            ips = self._async_runner.run(
+                self.controller.refresh_screen_sync_targets(configured_ips),
+                timeout=6.0,
+            )
+        except Exception as exc:
+            self.screen_sync_var.set(False)
+            self._set_status(f"Screen sync preflight failed: {exc}")
+            return
         if not ips:
             self.screen_sync_var.set(False)
             self.config.screen_sync.enabled = False
             self.config.save()
-            self._set_status("No bulbs configured")
+            self._set_status("No reachable bulbs available for screen sync")
             return
 
         self._save_screen_sync_settings()
@@ -540,7 +751,7 @@ class WizLightGUI:
                 settings.bulb_layout,
             )
             if bulb_colors:
-                self._run_async(self.controller.set_rgb_map(bulb_colors))
+                self._run_async(self.controller.set_screen_sync_map(bulb_colors))
 
             preview = average_colors(tuple(colors_by_target.values()))
             self.root.after(
@@ -550,35 +761,42 @@ class WizLightGUI:
                 ),
             )
 
-        self.screen_sync = ScreenSync(
+        self.screen_sync = OptimizedScreenSync(
             on_color_change=on_color_change,
-            config=CaptureConfig(
-                mode=settings.mode,
-                monitor=settings.monitor,
-                fps=settings.fps,
-                sample_size=settings.sample_size,
-                ignore_letterbox=settings.ignore_letterbox,
-                edge_weight=settings.edge_weight,
-                color_boost=settings.color_boost,
-                min_brightness=settings.min_brightness,
-                min_color_delta=settings.min_color_delta,
-                active_regions=active_regions,
-            ),
-            smoothing=settings.smoothing,
+            config=build_optimized_capture_config(settings, active_regions),
         )
         self.screen_sync.start()
+        if self._screen_sync_debug_id:
+            self.root.after_cancel(self._screen_sync_debug_id)
+        self._refresh_screen_sync_debug()
 
+        profile = "cinematic single" if mode == "single" and settings.color_algorithm == "auto" else settings.color_algorithm.upper()
+        mapping = self.controller.summarize_screen_sync_mapping(ips)
+        runtime = f"{self.screen_sync.capture_method.upper()} / {profile}"
+        if mapping:
+            runtime = f"{runtime} / {mapping}"
+        skipped = len(configured_ips) - len(ips)
         if mode == "zones":
-            self._set_status(f"Screen sync started in zones mode ({len(active_regions)} regions)")
+            self._set_status(
+                f"Screen sync started in zones mode ({len(active_regions)} regions, {runtime}{', skipped ' + str(skipped) + ' stale bulb(s)' if skipped else ''})"
+            )
         elif settings.mode == "zones":
-            self._set_status("Screen sync started in single mode (assign 2+ bulb regions for zones)")
+            self._set_status(
+                f"Screen sync started in single mode (assign 2+ bulb regions for zones, {runtime}{', skipped ' + str(skipped) + ' stale bulb(s)' if skipped else ''})"
+            )
         else:
-            self._set_status("Screen sync started in single mode")
+            self._set_status(
+                f"Screen sync started in single mode ({runtime}{', skipped ' + str(skipped) + ' stale bulb(s)' if skipped else ''})"
+            )
 
     def _stop_screen_sync(self, update_status: bool = True):
         if self.screen_sync:
             self.screen_sync.stop()
             self.screen_sync = None
+        if self._screen_sync_debug_id:
+            self.root.after_cancel(self._screen_sync_debug_id)
+            self._screen_sync_debug_id = None
+        self._refresh_screen_sync_debug()
         if update_status:
             self._set_status("Screen sync stopped")
 
@@ -592,10 +810,14 @@ class WizLightGUI:
             self._stop_screen_sync()
 
     def _toggle_clap_detection(self):
+        self.config.clap.enabled = bool(self.clap_var.get())
+        self.config.save()
         if self.clap_var.get():
             ips = self._get_bulb_ips()
             if not ips:
                 self.clap_var.set(False)
+                self.config.clap.enabled = False
+                self.config.save()
                 self._set_status("No bulbs configured")
                 return
 
@@ -605,15 +827,11 @@ class WizLightGUI:
 
             self.clap_detector = ClapDetector(
                 on_clap=on_clap,
-                config=ClapConfig(
-                    threshold=0.08,
-                    rms_threshold=0.015,
-                    double_clap=True,
-                    double_clap_window=0.6,
-                ),
+                config=self._current_clap_config(),
             )
             self.clap_detector.start()
-            self._set_status("Clap detection started")
+            mode = "double clap" if self.config.clap.double_clap else "single clap"
+            self._set_status(f"Clap detection started ({mode})")
         else:
             if self.clap_detector:
                 self.clap_detector.stop()
@@ -632,8 +850,12 @@ class WizLightGUI:
             self.root.after_cancel(self._brightness_debounce_id)
         if self._temp_debounce_id:
             self.root.after_cancel(self._temp_debounce_id)
+        if self._screen_sync_settings_save_id:
+            self.root.after_cancel(self._screen_sync_settings_save_id)
         if self._screen_sync_reconfigure_id:
             self.root.after_cancel(self._screen_sync_reconfigure_id)
+        if self._screen_sync_debug_id:
+            self.root.after_cancel(self._screen_sync_debug_id)
 
         for future in self._pending_tasks:
             if not future.done():
@@ -642,6 +864,7 @@ class WizLightGUI:
         try:
             self._async_runner.run(self.controller.close_async(), timeout=2.0)
         finally:
+            gc.collect()
             self._async_runner.shutdown()
             self.root.destroy()
 

@@ -55,7 +55,12 @@ class BackgroundAsyncLoop:
 
     def run(self, coro: Coroutine[Any, Any, T], timeout: float | None = None) -> T:
         """Schedule a coroutine and wait for its result."""
-        return self.submit(coro).result(timeout=timeout)
+        future = self.submit(coro)
+        try:
+            return future.result(timeout=timeout)
+        except TimeoutError:
+            future.cancel()
+            raise
 
     async def _cancel_pending_tasks(self) -> None:
         current_task = asyncio.current_task()

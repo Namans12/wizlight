@@ -1,6 +1,7 @@
 """Click-based CLI for WizLight."""
 
 import asyncio
+import gc
 
 import click
 
@@ -21,6 +22,7 @@ def _cleanup_runtime(controller: BulbController, runner: BackgroundAsyncLoop) ->
     except Exception:
         controller.close()
     finally:
+        gc.collect()
         runner.shutdown()
 
 
@@ -104,6 +106,26 @@ def remove_bulb(ctx, ip):
         click.echo(f"Removed bulb {ip} from config")
     else:
         click.echo(f"Bulb {ip} not found in config")
+
+
+@cli.command("prune-bulbs")
+@click.pass_context
+def prune_bulbs(ctx):
+    """Remove stale or duplicate bulbs from config."""
+    config = ctx.obj["config"]
+    controller = ctx.obj["controller"]
+
+    if not config.bulbs:
+        click.echo("No bulbs configured.")
+        return
+
+    stale_ips = run_async(ctx, controller.find_stale_bulbs([bulb.ip for bulb in config.bulbs]))
+    if not stale_ips:
+        click.echo("No stale bulbs found.")
+        return
+
+    removed = config.remove_bulbs(stale_ips)
+    click.echo(f"Removed {removed} stale bulb(s): {', '.join(stale_ips)}")
 
 
 @cli.command("list-bulbs")
@@ -315,14 +337,21 @@ def serve(ctx, port, host):
     
     controller = ctx.obj["controller"]
     config = ctx.obj["config"]
-    ips = [b.ip for b in config.bulbs]
+    configured_ips = [b.ip for b in config.bulbs]
+    ips = run_async(ctx, controller.refresh_screen_sync_targets(configured_ips))
     
     if not ips:
-        click.echo("No bulbs configured. Run 'wizlight discover' first.")
+        click.echo("No reachable bulbs available. Run 'wizlight discover' or remove stale entries.")
         return
     
     click.echo(f"Starting WebSocket server on ws://{host}:{port}")
-    click.echo(f"Controlling {len(ips)} bulb(s): {', '.join(ips)}")
+    click.echo(f"Controlling {len(ips)} reachable bulb(s): {', '.join(ips)}")
+    skipped = len(configured_ips) - len(ips)
+    if skipped:
+        click.echo(f"Skipping {skipped} stale or unreachable bulb(s)")
+    mapping = controller.summarize_screen_sync_mapping(ips)
+    if mapping:
+        click.echo(f"Mapping: {mapping}")
     click.echo("Press Ctrl+C to stop")
     click.echo()
     
@@ -339,10 +368,7 @@ def serve(ctx, port, host):
         
         # Apply colors to bulbs
         async def apply_colors():
-            await asyncio.gather(
-                *(controller.set_rgb(ip, *rgb) for ip, rgb in bulb_colors.items()),
-                return_exceptions=True,
-            )
+            await controller.set_screen_sync_map(bulb_colors)
         
         ctx.obj["runner"].run(apply_colors())
     

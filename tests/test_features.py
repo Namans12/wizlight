@@ -1,19 +1,28 @@
 import numpy as np
+import pytest
 
 from src.features.clap_detector import ClapConfig, ClapDetector
 from src.features.screen_sync import (
+    adaptive_color_boost,
     build_bulb_color_map,
     detect_content_bounds,
     effective_screen_sync_mode,
     enhance_color,
     extract_dominant_color,
+    perceptual_color_distance,
     resolve_active_regions,
     smooth_color,
 )
 from src.features.screen_sync_v2 import (
     ColorPredictor,
+    GPUCaptureManager,
     MotionDetector,
     OptimizedCaptureConfig,
+    OptimizedScreenSync,
+    apply_cinematic_palette_hold,
+    build_optimized_capture_config,
+    extract_cinematic_single_color,
+    extract_dominant_auto,
     extract_dominant_histogram,
     extract_dominant_kmeans,
     extract_dominant_weighted,
@@ -38,6 +47,18 @@ def test_enhance_color_boosts_low_brightness_colors():
 
     assert max(color) >= 28
     assert color[0] > color[1] > color[2]
+
+
+def test_adaptive_color_boost_stays_near_neutral_for_low_saturation_colors():
+    boost = adaptive_color_boost((136, 134, 110), configured_boost=1.62)
+
+    assert 1.0 < boost < 1.12
+
+
+def test_adaptive_color_boost_preserves_extra_pop_for_vivid_colors():
+    boost = adaptive_color_boost((250, 14, 96), configured_boost=1.62)
+
+    assert boost > 1.2
 
 
 def test_detect_content_bounds_ignores_letterbox_bars():
@@ -181,6 +202,135 @@ def test_extract_dominant_weighted_handles_uniform_image():
     assert all(abs(c - 128) <= 1 for c in color)
 
 
+def test_perceptual_color_distance_weights_green_more_than_blue():
+    """Perceptual delta should treat green shifts as more visible than blue shifts."""
+
+    base = (120, 120, 120)
+    green_shift = (120, 132, 120)
+    blue_shift = (120, 120, 132)
+
+    assert perceptual_color_distance(base, green_shift) > perceptual_color_distance(base, blue_shift)
+
+
+def test_extract_dominant_auto_preserves_vivid_hues():
+    """Auto extraction should keep strong hues from being washed out."""
+    image = np.zeros((32, 32, 3), dtype=np.uint8)
+    image[:, :24, 0] = 230
+    image[:, :24, 1] = 20
+    image[:, :24, 2] = 30
+    image[:, 24:, :] = 20
+
+    r, g, b = extract_dominant_auto(image, sample_size=16, edge_weight=1.2)
+
+    assert r > 150
+    assert g < 90
+    assert b < 90
+
+
+def test_extract_dominant_auto_preserves_warm_low_saturation_scene():
+    """Auto extraction should not wash warm scenes back toward gray."""
+    image = np.full((32, 32, 3), fill_value=(90, 60, 35), dtype=np.uint8)
+    image[:, 20:, :] = (120, 80, 40)
+
+    r, g, b = extract_dominant_auto(image, sample_size=16, edge_weight=1.2)
+
+    assert r > g > b
+    assert r >= 85
+    assert b <= 55
+
+
+def test_extract_dominant_auto_avoids_muddy_brown_in_cool_scene():
+    """Auto extraction should stay close to a dominant cool palette instead of averaging to brown."""
+
+    image = np.full((36, 36, 3), fill_value=(24, 28, 34), dtype=np.uint8)
+    image[:, :24, :] = (28, 120, 210)
+    image[:, 24:30, :] = (60, 170, 200)
+    image[10:26, 26:, :] = (185, 118, 42)
+
+    r, g, b = extract_dominant_auto(image, sample_size=24, edge_weight=1.25)
+
+    assert b > g > r
+    assert b >= 140
+    assert r <= 110
+
+
+def test_extract_cinematic_single_color_biases_toward_accent_palette():
+    """Single-bulb cinematic extraction should lean into visible accent colors."""
+    image = np.full((48, 48, 3), fill_value=(45, 55, 70), dtype=np.uint8)
+    image[:, :14, 0] = 220
+    image[:, :14, 1] = 90
+    image[:, :14, 2] = 30
+
+    r, g, b = extract_cinematic_single_color(image, sample_size=24, edge_weight=1.3)
+
+    assert r > g > b
+    assert r >= 90
+    assert b <= 70
+
+
+def test_extract_cinematic_single_color_keeps_cool_palette_with_small_warm_patch():
+    """Single-bulb mode should not collapse a mostly cool frame into warm brown."""
+
+    image = np.full((48, 48, 3), fill_value=(22, 34, 54), dtype=np.uint8)
+    image[:, :30, :] = (24, 110, 205)
+    image[:, 30:40, :] = (36, 148, 214)
+    image[12:30, 34:48, :] = (200, 124, 58)
+
+    r, g, b = extract_cinematic_single_color(image, sample_size=24, edge_weight=1.3)
+
+    assert b > g > r
+    assert b >= 145
+    assert r <= 115
+
+
+def test_extract_cinematic_single_color_does_not_overcommit_on_balanced_multicolor_frame():
+    """Balanced multicolor scenes should stay near the overall ambient light, not a single accent."""
+
+    image = np.zeros((48, 48, 3), dtype=np.uint8)
+    image[:, :16, :] = (255, 0, 0)
+    image[:, 16:32, :] = (0, 255, 0)
+    image[:, 32:, :] = (0, 0, 255)
+
+    r, g, b = extract_cinematic_single_color(image, sample_size=24, edge_weight=1.3)
+
+    assert max(r, g, b) - min(r, g, b) <= 70
+
+
+def test_extract_dominant_auto_does_not_overcommit_on_balanced_multicolor_frame():
+    """Balanced multicolor scenes in auto mode should avoid random accent bias."""
+
+    image = np.zeros((48, 48, 3), dtype=np.uint8)
+    image[:, :16, :] = (255, 0, 0)
+    image[:, 16:32, :] = (0, 255, 0)
+    image[:, 32:, :] = (0, 0, 255)
+
+    r, g, b = extract_dominant_auto(image, sample_size=24, edge_weight=1.3)
+
+    assert max(r, g, b) - min(r, g, b) <= 70
+
+
+def test_apply_cinematic_palette_hold_retains_previous_hue_in_calm_scene():
+    """Cinematic hold should preserve ambience when the next frame desaturates gently."""
+    target = (86, 84, 82)
+    previous = (160, 60, 28)
+
+    held = apply_cinematic_palette_hold(target, previous, motion_score=0.01)
+
+    assert held[0] > target[0]
+    assert held[1] < held[0]
+    assert held[2] < held[1]
+
+
+def test_apply_cinematic_palette_hold_does_not_lag_on_fast_motion():
+    """High-motion scenes should use the fresh target color without cinematic hold."""
+    target = (86, 84, 82)
+    previous = (160, 60, 28)
+
+    held = apply_cinematic_palette_hold(target, previous, motion_score=0.08)
+
+    assert held == target
+
+
 def test_motion_detector_detects_change():
     """Motion detector should report high motion for different frames."""
     detector = MotionDetector(threshold=0.01)
@@ -209,6 +359,22 @@ def test_motion_detector_detects_static():
         detector.update(frame)
     
     assert not detector.is_high_motion()
+
+
+def test_gpu_capture_manager_preserves_dxcam_rgb_channel_order():
+    class FakeCamera:
+        def get_latest_frame(self):
+            frame = np.zeros((2, 2, 3), dtype=np.uint8)
+            frame[:, :, 0] = 255
+            return frame
+
+    capture = GPUCaptureManager()
+    capture._camera = FakeCamera()
+
+    frame = capture.grab()
+
+    assert frame is not None
+    assert tuple(frame[0, 0]) == (255, 0, 0)
 
 
 def test_color_predictor_extrapolates_trend():
@@ -248,3 +414,93 @@ def test_optimized_config_validates_ranges():
     assert config.max_fps == 60
     assert config.color_algorithm == "weighted"
     assert config.prediction_frames == 10
+
+
+def test_build_optimized_capture_config_uses_persisted_screen_settings():
+    """Factory should preserve advanced screen-sync settings."""
+
+    class Settings:
+        mode = "zones"
+        monitor = 2
+        fps = 24
+        smoothing = 0.35
+        sample_size = 64
+        ignore_letterbox = True
+        edge_weight = 1.4
+        color_boost = 1.2
+        min_brightness = 30
+        min_color_delta = 10
+        use_gpu = False
+        adaptive_fps = True
+        min_fps = 10
+        max_fps = 24
+        color_algorithm = "auto"
+        predictive_smoothing = True
+
+    config = build_optimized_capture_config(Settings(), ("left", "right"))
+
+    assert config.mode == "zones"
+    assert config.monitor == 2
+    assert config.max_fps == 24
+    assert config.min_fps == 10
+    assert config.color_algorithm == "auto"
+    assert config.use_gpu is False
+    assert config.active_regions == ("left", "right")
+
+
+def test_build_optimized_capture_config_tunes_single_auto_for_cinematic_sync():
+    class Settings:
+        mode = "single"
+        monitor = 1
+        fps = 24
+        smoothing = 0.3
+        sample_size = 48
+        ignore_letterbox = True
+        edge_weight = 1.4
+        color_boost = 1.25
+        min_brightness = 30
+        min_color_delta = 10
+        use_gpu = True
+        adaptive_fps = True
+        min_fps = 8
+        max_fps = 24
+        color_algorithm = "auto"
+        predictive_smoothing = True
+
+    config = build_optimized_capture_config(Settings(), ())
+
+    assert config.mode == "single"
+    assert config.sample_size >= 60
+    assert config.smoothing <= 0.18
+    assert config.color_boost <= 1.14
+    assert config.min_color_delta <= 6
+    assert config.max_fps >= 26
+    assert config.min_fps >= 14
+
+
+def test_optimized_screen_sync_debug_snapshot_reports_runtime_stats():
+    """Debug snapshot should expose derived cadence and color state."""
+    sync = OptimizedScreenSync(lambda _: None, OptimizedCaptureConfig())
+
+    with sync._stats_lock:
+        sync._capture_method = "dxcam"
+        sync._current_fps = 22
+        sync._motion_score = 0.02
+        sync._smoothing_factor = 0.18
+        sync._prediction_strength = 0.11
+        sync._current_colors = {"all": (10, 20, 30)}
+        sync._last_target_colors = {"all": (12, 22, 32)}
+        sync._send_intervals.extend([0.05, 0.1])
+        sync._updates_sent = 4
+        sync._frames_processed = 8
+
+    snapshot = sync.debug_snapshot
+
+    assert snapshot["capture_method"] == "dxcam"
+    assert snapshot["current_fps"] == 22
+    assert snapshot["target_colors"]["all"] == (12, 22, 32)
+    assert snapshot["current_colors"]["all"] == (10, 20, 30)
+    assert snapshot["send_interval_ms"] == pytest.approx(75.0)
+    assert round(snapshot["send_rate_hz"], 3) == round(1 / 0.075, 3)
+    assert snapshot["updates_sent"] == 4
+    assert snapshot["frames_processed"] == 8
